@@ -14,7 +14,7 @@ from setuptools import find_packages, setup, Command
 # Package meta-data.
 NAME = 'sqlflow_models'
 DESCRIPTION = 'Premade Models for SQLFlow.'
-URL = 'https://github.com/sqlflow/models'
+URL = 'https://github.com/sql-machine-learning/models'
 EMAIL = 'yzhdoudou@gmail.com'
 AUTHOR = 'Yang Yang'
 REQUIRES_PYTHON = '>=3.6.0'
