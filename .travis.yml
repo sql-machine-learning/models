@@ -18,5 +18,4 @@ install:
 - python setup.py -q install
 
 script:
-- make protoc
 - python setup.py -q test
