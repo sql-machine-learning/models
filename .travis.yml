@@ -1,0 +1,22 @@
+dist: xenial
+cache: pip
+branches:
+  only:
+  - master
+  - develop
+  # https://docs.travis-ci.com/user/customizing-the-build/#safelisting-or-blocklisting-branches
+  # safe list can prevent tag building, add rexp to detect tag
+  - "/^v\\d+\\.\\d+(\\.\\d+)?(-\\S*)?$/"
+
+language: python
+python:
+- 3.6
+- 3.7
+- 3.8-dev
+
+install:
+- python setup.py -q install
+
+script:
+- make protoc
+- python setup.py -q test
