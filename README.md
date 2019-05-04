@@ -6,9 +6,9 @@ Premade Models for [SQLFlow](https://github.com/sql-machine-learning/sqlflow).
 
 This package is available on PyPI as `sqlflow_models`. So you can install it by running the following command:
 
-    ```bash
-    pip install sqlflow_models
-    ```
+  ```bash
+  pip install sqlflow_models
+  ```
 
 ## Development
 
