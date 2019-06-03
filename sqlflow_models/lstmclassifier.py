@@ -14,7 +14,6 @@ class StackedBiLSTMClassifier(tf.keras.Model):
         """
         super(StackedBiLSTMClassifier, self).__init__()
 
-
         self.feature_layer = tf.keras.experimental.SequenceFeatures(feature_columns)
         self.stack_bilstm = []
         self.stack_size = stack_size
