@@ -53,7 +53,7 @@ class StackedBiLSTMClassifier(tf.keras.Model):
 
     def default_training_epochs(self):
         """Default training epochs. Used in model.fit."""
-        return 10
+        return 1
 
     def prepare_prediction_column(self, prediction):
         """Return the class label of highest probability."""
