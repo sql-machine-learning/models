@@ -1,14 +1,12 @@
 import tensorflow as tf
 
 class StackedBiLSTMClassifier(tf.keras.Model):
-    def __init__(self, feature_columns, units=64, stack_size=1, n_classes=2):
+    def __init__(self, feature_columns, stack_units=[32], hidden_size=64, n_classes=2):
         """StackedBiLSTMClassifier
         :param feature_columns: All columns must be embedding of sequence column with same sequence_length.
         :type feature_columns: list[tf.embedding_column].
-        :param units: Units for LSTM layer.
-        :type units: int.
-        :param stack_size: number of bidirectional LSTM layers in the stack, default 1.
-        :type stack_size: int.
+        :param stack_units: Units for LSTM layer.
+        :type stack_units: vector of ints.
         :param n_classes: Target number of classes.
         :type n_classes: int.
         """
@@ -16,14 +14,24 @@ class StackedBiLSTMClassifier(tf.keras.Model):
 
         self.feature_layer = tf.keras.experimental.SequenceFeatures(feature_columns)
         self.stack_bilstm = []
-        self.stack_size = stack_size
-        if stack_size > 1:
-            for i in range(stack_size - 1):
+        self.stack_size = len(stack_units)
+        self.stack_units = stack_units
+        self.n_classes = n_classes
+        if self.stack_size > 1:
+            for i in range(self.stack_size - 1):
                 self.stack_bilstm.append(
-                    tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(units, return_sequences=True))
+                    tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(self.stack_units[i], return_sequences=True))
                 )
-        self.lstm = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(units))
-        self.pred = tf.keras.layers.Dense(n_classes, activation='softmax')
+        self.lstm = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(self.stack_units[-1]))
+        self.hidden = tf.keras.layers.Dense(hidden_size, activation='relu')
+        if self.n_classes == 2:
+            # special setup for binary classification
+            pred_act = 'sigmoid'
+            self.loss = 'binary_crossentropy'
+        else:
+            pred_act = 'softmax'
+            self.loss = 'categorical_crossentropy'
+        self.pred = tf.keras.layers.Dense(n_classes, activation=pred_act)
 
     def call(self, inputs):
         x, seq_len = self.feature_layer(inputs)
@@ -32,6 +40,7 @@ class StackedBiLSTMClassifier(tf.keras.Model):
             for i in range(self.stack_size - 1):
                 x = self.stack_bilstm[i](x, mask=seq_mask)
         x = self.lstm(x, mask=seq_mask)
+        x = self.hidden(x)
         return self.pred(x)
 
     def default_optimizer(self):
@@ -40,7 +49,7 @@ class StackedBiLSTMClassifier(tf.keras.Model):
 
     def default_loss(self):
         """Default loss function. Used in model.compile."""
-        return 'categorical_crossentropy'
+        return self.loss
 
     def default_training_epochs(self):
         """Default training epochs. Used in model.fit."""
