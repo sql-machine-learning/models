@@ -28,4 +28,4 @@ class BaseTestCases:
             loss, acc = self.model.evaluate(eval_input_fn(self.features, self.label))
             print(loss, acc)
             assert(loss < 10)
-            assert(acc > 0.3)
+            assert(acc > 0.1)
