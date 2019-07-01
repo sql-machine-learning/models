@@ -1,5 +1,5 @@
 import sqlflow_models
-from .base import BaseTestCases
+from tests.base import BaseTestCases
 
 import tensorflow as tf
 import numpy as np

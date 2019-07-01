@@ -1,18 +1,21 @@
-import unittest
 import tensorflow as tf
+import unittest
+
 
 def train_input_fn(features, labels, batch_size=32):
     dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels))
     dataset = dataset.shuffle(1000).repeat().batch(batch_size)
     return dataset
 
+
 def eval_input_fn(features, labels, batch_size=32):
     dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels))
     dataset = dataset.batch(batch_size)
     return dataset
 
+
 class BaseTestCases:
-    class BaseTest(object):
+    class BaseTest(unittest.TestCase):
         def setUp(self):
             self.model, self.features, self.label = None, {}, None
 
