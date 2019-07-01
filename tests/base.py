@@ -1,4 +1,5 @@
 import tensorflow as tf
+import unittest
 
 
 def train_input_fn(features, labels, batch_size=32):
@@ -13,8 +14,8 @@ def eval_input_fn(features, labels, batch_size=32):
     return dataset
 
 
-class BaseTestCases(object):
-    class BaseTest(object):
+class BaseTestCases:
+    class BaseTest(unittest.TestCase):
         def setUp(self):
             self.model, self.features, self.label = None, {}, None
 
