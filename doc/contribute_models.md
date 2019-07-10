@@ -1,6 +1,6 @@
 # How to Contribute SQLFLow Models
 
-This guide will introduce how to contribute to SQLFlow models. If you haven't checked [Define SQLFLow Models](/doc/customized+model.md), please check it out first.
+This guide will introduce how to contribute to SQLFlow models. You can find design doc: [Define SQLFLow Models](/doc/customized+model.md), and feel free to check it out.
 
 ## Add an SQLFlow Model
 
@@ -20,14 +20,15 @@ This guide will introduce how to contribute to SQLFlow models. If you haven't ch
         `- mydnnclassifier.py
     ```
 
-1. Define your model named `MyDNNClassifier`:
+1. You can choose whatever name you like for your model. Your model definition should be a [keras subclass model](https://keras.io/models/about-keras-models/#model-subclassing)
 
     ``` python
     import tensorflow as tf
 
     class MyDNNClassifier(tf.keras.Model):
-    def __init__(self, feature_columns, hidden_units=[10,10], n_classes=2):
-        ...
+        def __init__(self, feature_columns, hidden_units=[10,10], n_classes=2):
+            ...
+            ...
     ```
 
 1. Import `MyDNNClassfier` in [sqlflow_models/__ini__.py]:
@@ -37,7 +38,7 @@ This guide will introduce how to contribute to SQLFlow models. If you haven't ch
     from .mydnnclassfier import MyDNNClassifier
     ```
 
-## Integration test with SQLFlow gRPC server
+## Test Your SQLFlow Model
 
 If you have developed a new model, please perform the integration test with the SQLFlow gRPC server to make sure it works well with SQLFlow.
 
