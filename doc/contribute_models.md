@@ -33,7 +33,7 @@ This guide will introduce how to contribute to SQLFlow models. You can find desi
             ...
     ```
 
-1. Import `MyDNNClassfier` in [sqlflow_models/__init__.py](/sqlflow_models/__init__.py):
+1. Import `MyDNNClassfier` in [sqlflow_models/\_\_init__.py](/sqlflow_models/__init__.py):
 
     ``` python
     ...
