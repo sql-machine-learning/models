@@ -40,10 +40,25 @@ This guide will introduce how to contribute to SQLFlow models. You can find desi
     from .mydnnclassfier import MyDNNClassifier
     ```
 
-1. You can test your `MyDNNClassifier` by adding a new Python unit test script `tests/test_mydnnclassifier.py` and run the test as:
+1. You can test your `MyDNNClassifier` by adding a new Python unit test script `tests/test_mydnnclassifier.py` and run the test as: `python tests/test_mydnnclassifier.py`:
 
-    ``` bash
-    > python tests/test_mydnnclassifier.py.
+    ``` python
+    from  sqlflow_models import MyDNNClassifier
+    from tests.base import BaseTestCases
+
+    import tensorflow as tf
+    import unittest
+
+
+    class TestMyDNNClassifier(BaseTestCases.BaseTest):
+        def setUp(self):
+            self.features = {...}
+            self.label = [...]
+            feature_columns = [...]
+            self.model = MyDNNClassifier(feature_columns=feature_columns)
+
+    if __name__ == '__main__':
+        unittest.main()
     ```
 
 ## Test Your SQLFlow Model
