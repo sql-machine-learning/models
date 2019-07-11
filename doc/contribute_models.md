@@ -2,7 +2,7 @@
 
 This guide will introduce how to contribute to SQLFlow models. You can find design doc: [Define SQLFLow Models](/doc/customized+model.md), and feel free to check it out.
 
-## Add an SQLFlow Model
+## Develop an SQLFlow Model
 
 1. Open the [SQLFlow models repo](https://github.com/sql-machine-learning/models) on your web browser, and fork the official repo to your account.
 
@@ -11,6 +11,8 @@ This guide will introduce how to contribute to SQLFlow models. You can find desi
     ``` bash
     > git clone https://github.com/<Your Github ID>/models.git
     ```
+
+1. Set up your local python environment by `make setup && source venv/bin/activate`. If you are using [PyCharm](https://www.jetbrains.com/pycharm/), you can simply `make setup` and then import the `models` folder as a new project.
 
 1. You can add a new mode definition Python script under the folder [sqlflow_models](/sqlflow_models). For example, adding a new Python script `mydnnclassfier.py`:
 
@@ -31,11 +33,17 @@ This guide will introduce how to contribute to SQLFlow models. You can find desi
             ...
     ```
 
-1. Import `MyDNNClassfier` in [sqlflow_models/__ini__.py]:
+1. Import `MyDNNClassfier` in [sqlflow_models/__init__.py](/sqlflow_models/__init__.py):
 
     ``` python
     ...
     from .mydnnclassfier import MyDNNClassifier
+    ```
+
+1. You can test your `MyDNNClassifier` by adding a new Python unit test script `tests/test_mydnnclassifier.py` and run the test as:
+
+    ``` bash
+    > python tests/test_mydnnclassifier.py.
     ```
 
 ## Test Your SQLFlow Model
