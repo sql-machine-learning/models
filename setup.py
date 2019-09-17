@@ -22,7 +22,7 @@ VERSION = None
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'tensorflow==2.0.0-alpha0', 'scikit-learn==0.20.0', 'numpy==1.16.2', 'pandas==0.25.1'
+    'tensorflow==2.0.0b1', 'scikit-learn==0.20.0', 'numpy==1.16.2', 'pandas==0.25.1'
 ]
 SETUP_REQUIRED = [
     'pytest-runner'
