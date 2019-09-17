@@ -90,7 +90,7 @@ class TestDeepEmbeddingCluster(BaseTestCases.BaseTest):
 
         self.model.compile(optimizer=self.model.default_optimizer(),
                            loss=self.model.default_loss())
-        self.model.cluster_train_loop(train_input_fn(self.features, self.label))
+        self.model.sqlflow_train_loop(train_input_fn(self.features, self.label))
         metric = evaluate(x=eval_input_fn(self.features, self.label), y=self.label, model=self.model)
         print(metric)
         assert (metric['acc'] > 0)

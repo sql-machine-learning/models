@@ -188,7 +188,7 @@ class DeepEmbeddingClusterModel(keras.Model):
         self.y_pred_last = self.kmeans.fit_predict(self.encoded_input)
         print('{} Done init centroids by k-means.'.format(datetime.now()))
 
-    def cluster_train_loop(self, x):
+    def sqlflow_train_loop(self, x):
         # Preparation
         ite = make_one_shot_iterator(x)
         features, labels = ite.get_next()
