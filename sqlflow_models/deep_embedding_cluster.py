@@ -40,6 +40,7 @@ class DeepEmbeddingClusterModel(keras.Model):
                  update_interval=100,
                  tol=0.001,
                  loss='kld'):
+
         """
         Implement cluster model mostly based on DEC.
         :param feature_columns:
