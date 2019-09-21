@@ -13,6 +13,7 @@ from tensorflow.python import keras
 from tensorflow.python.data import make_one_shot_iterator
 from tensorflow.python.feature_column.feature_column_v2 import DenseFeatures
 from tensorflow.python.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from tensorflow.python.keras.engine.base_layer import InputSpec
 from tensorflow.python.keras.layers import Dense, Layer
 from tensorflow.python.keras import backend
 import numpy as np
@@ -33,12 +34,12 @@ class DeepEmbeddingClusterModel(keras.Model):
                  pretrain_activation_func='relu',
                  pretrain_batch_size=256,
                  train_batch_size=256,
-                 pretrain_epochs=1,
+                 pretrain_epochs=10,
                  pretrain_initializer='glorot_uniform',
-                 train_max_iters=1000,
+                 train_max_iters=8000,
                  update_interval=100,
                  tol=0.001,
-                 loss=None):
+                 loss='kld'):
         """
         Implement cluster model mostly based on DEC.
         :param feature_columns:
@@ -61,8 +62,9 @@ class DeepEmbeddingClusterModel(keras.Model):
 
         # Common
         self._feature_columns = feature_columns
+        self._feature_columns_dims = len(self._feature_columns)
         self._n_clusters = n_clusters
-        self._default_loss = loss if loss else 'kld'
+        self._default_loss = loss
         self._train_max_iters = train_max_iters
         self._train_batch_size = train_batch_size
         self._update_interval = update_interval
@@ -74,7 +76,7 @@ class DeepEmbeddingClusterModel(keras.Model):
         self._existed_pretrain_model = existed_pretrain_model
         self._pretrain_activation_func = pretrain_activation_func
         self._pretrain_batch_size = pretrain_batch_size
-        self._pretrain_dims = pretrain_dims
+        self._pretrain_dims = pretrain_dims if pretrain_dims is not None else [500, 500, 2000, 10]
         self._pretrain_epochs = pretrain_epochs
         self._pretrain_initializer = pretrain_initializer
         self._pretrain_optimizer = SGD(lr=1, momentum=0.9)
@@ -91,14 +93,10 @@ class DeepEmbeddingClusterModel(keras.Model):
 
         # Layers - encoder
         self.encoder_layers = []
-        for i in range(self._n_stacks - 1):
-            self.encoder_layers.append(Dense(units=self._pretrain_dims[i + 1],
+        for i in range(self._n_stacks):
+            self.encoder_layers.append(Dense(units=self._pretrain_dims[i],
                                              activation=self._pretrain_activation_func,
                                              name='encoder_%d' % i))
-
-        self.encoder_layers.append(Dense(units=self._pretrain_dims[-1],
-                                         kernel_initializer=self._pretrain_initializer,
-                                         name='encoder_%d' % (self._n_stacks - 1)))
 
         self.clustering_layer = ClusteringLayer(name='clustering', n_clusters=self._n_clusters)
 
@@ -138,13 +136,13 @@ class DeepEmbeddingClusterModel(keras.Model):
 
         # Layers - decoder
         self.decoder_layers = []
-        for i in range(self._n_stacks - 1, 0, -1):
+        for i in range(self._n_stacks - 2, -1, -1):
             self.decoder_layers.append(Dense(units=self._pretrain_dims[i],
                                              activation=self._pretrain_activation_func,
                                              kernel_initializer=self._pretrain_initializer,
-                                             name='decoder_%d' % i))
+                                             name='decoder_%d' % (i + 1)))
 
-        self.decoder_layers.append(Dense(units=self._pretrain_dims[0],
+        self.decoder_layers.append(Dense(units=self._feature_columns_dims,
                                          kernel_initializer=self._pretrain_initializer,
                                          name='decoder_0'))
         # Pretrain - autoencoder, encoder
@@ -157,12 +155,11 @@ class DeepEmbeddingClusterModel(keras.Model):
         self._encoder.compile(optimizer=self._pretrain_optimizer, loss='mse')
 
         callbacks = [
-            EarlyStopping(monitor='loss', patience=2, min_delta=0.001),
+            EarlyStopping(monitor='loss', patience=2, min_delta=0.0001),
             ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2)
         ]
         print('{} Training auto-encoder.'.format(datetime.now()))
         self._autoencoder.fit_generator(generator=y, epochs=self._pretrain_epochs, callbacks=callbacks)
-
         # encoded_input
         # type : numpy.ndarray shape : (num_of_all_records,num_of_cluster) (70000,10) if mnist
         print('{} Calculating encoded_input.'.format(datetime.now()))
@@ -188,12 +185,15 @@ class DeepEmbeddingClusterModel(keras.Model):
         self.y_pred_last = self.kmeans.fit_predict(self.encoded_input)
         print('{} Done init centroids by k-means.'.format(datetime.now()))
 
-    def sqlflow_train_loop(self, x, epochs = 1, verbose = 0):
+    def sqlflow_train_loop(self, x, epochs=1, verbose=0):
         """ Parameter `epochs` and `verbose` will not be used in this function. """
+        # There is a bug which will cause build failed when using `DenseFeatures` with `keras.Model`
+        # https://github.com/tensorflow/tensorflow/issues/28111
+        # Using 'predict' to solve this problem here.
         # Preparation
         ite = make_one_shot_iterator(x)
-        features, labels = ite.get_next()
-        self.fit(x=features, y=labels)
+        features, _ = ite.get_next()
+        self.predict(x=features)
 
         # Pre-train autoencoder to prepare weights of encoder layers.
         self.pre_train(x)
@@ -249,6 +249,15 @@ class DeepEmbeddingClusterModel(keras.Model):
             print('Summary : ')
             print(self.summary())
         if verbose >= 1:
+            print('Layer\'s Shape : ')
+            for layer in self.encoder_layers:
+                print(layer.name + ' : ')
+                for i in layer.get_weights():
+                    print(i.shape)
+            print(self.clustering_layer.name + ' : ')
+            for i in self.clustering_layer.get_weights():
+                print(i.shape)
+        if verbose >= 2:
             print('Layer\'s Info : ')
             for layer in self.encoder_layers:
                 print(layer.name + ' : ')
@@ -271,10 +280,12 @@ class ClusteringLayer(Layer):
         """
         self.n_clusters = n_clusters
         self.alpha = alpha
+        self.input_spec = InputSpec(ndim=2)
         super(ClusteringLayer, self).__init__(**kwargs)
 
     def build(self, input_shape):
         input_dim = input_shape[1]
+        self.input_spec = InputSpec(dtype=backend.floatx(), shape=(None, input_dim))
         shape = tf.TensorShape(dims=(self.n_clusters, input_dim))
         self.kernel = self.add_weight(name='kernel', shape=shape, initializer='glorot_uniform', trainable=True)
         super(ClusteringLayer, self).build(shape)
