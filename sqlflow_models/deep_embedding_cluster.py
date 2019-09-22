@@ -18,6 +18,7 @@ from tensorflow.python.keras.layers import Dense, Layer
 from tensorflow.python.keras import backend
 import numpy as np
 from sklearn.cluster import KMeans
+from tensorflow.python.keras.losses import kld
 from tensorflow.python.keras.optimizer_v2.gradient_descent import SGD
 import pandas as pd
 
@@ -39,7 +40,7 @@ class DeepEmbeddingClusterModel(keras.Model):
                  train_max_iters=8000,
                  update_interval=100,
                  tol=0.001,
-                 loss='kld'):
+                 loss=kld):
 
         """
         Implement cluster model mostly based on DEC.
