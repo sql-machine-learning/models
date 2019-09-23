@@ -37,6 +37,8 @@ class DeepEmbeddingClusterModel(keras.Model):
                  train_batch_size=256,
                  pretrain_epochs=10,
                  pretrain_initializer='glorot_uniform',
+                 pretrain_lr = 1,
+                 train_lr = 0.01,
                  train_max_iters=8000,
                  update_interval=100,
                  tol=0.001,
@@ -81,13 +83,15 @@ class DeepEmbeddingClusterModel(keras.Model):
         self._pretrain_dims = pretrain_dims if pretrain_dims is not None else [500, 500, 2000, 10]
         self._pretrain_epochs = pretrain_epochs
         self._pretrain_initializer = pretrain_initializer
-        self._pretrain_optimizer = SGD(lr=1, momentum=0.9)
+        self._pretrain_lr = pretrain_lr
+        self._pretrain_optimizer = SGD(lr=self._pretrain_lr, momentum=0.9)
 
         # K-Means
         self._kmeans_init = kmeans_init
 
         # Cluster
-        self._cluster_optimizer = SGD(lr=0.01, momentum=0.9)
+        self._train_lr = train_lr
+        self._cluster_optimizer = SGD(lr=self._train_lr, momentum=0.9)
 
         # Build model
         self._n_stacks = len(self._pretrain_dims)
