@@ -1,3 +1,5 @@
+from tensorflow.python.keras.losses import kld
+
 import sqlflow_models
 from tests.base import BaseTestCases, eval_input_fn
 
@@ -67,7 +69,7 @@ class TestDeepEmbeddingCluster(BaseTestCases.BaseTest):
 
         self.label = y
         feature_columns = [tf.feature_column.numeric_column(key) for key in self.features]
-        pretrain_dims = [feature_num, 500, 500, 2000, 10]
+        pretrain_dims = [500, 500, 2000, 10]
         # Init model
         self.model = sqlflow_models.DeepEmbeddingClusterModel(feature_columns=feature_columns,
                                                               n_clusters=10,
@@ -83,7 +85,7 @@ class TestDeepEmbeddingCluster(BaseTestCases.BaseTest):
                                                               train_max_iters=100,
                                                               update_interval=20,
                                                               tol=0.001,
-                                                              loss=None)
+                                                              loss=kld)
 
     def test_train_and_predict(self):
         self.setUp()
