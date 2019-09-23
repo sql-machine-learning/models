@@ -84,14 +84,14 @@ class DeepEmbeddingClusterModel(keras.Model):
         self._pretrain_epochs = pretrain_epochs
         self._pretrain_initializer = pretrain_initializer
         self._pretrain_lr = pretrain_lr
-        self._pretrain_optimizer = SGD(lr=self._pretrain_lr, momentum=0.9)
+        self._pretrain_optimizer = SGD(lr=float(self._pretrain_lr), momentum=0.9)
 
         # K-Means
         self._kmeans_init = kmeans_init
 
         # Cluster
         self._train_lr = train_lr
-        self._cluster_optimizer = SGD(lr=self._train_lr, momentum=0.9)
+        self._cluster_optimizer = SGD(lr=float(self._train_lr), momentum=0.9)
 
         # Build model
         self._n_stacks = len(self._pretrain_dims)
