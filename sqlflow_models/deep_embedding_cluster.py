@@ -242,9 +242,8 @@ class DeepEmbeddingClusterModel(keras.Model):
             idx = index_array[index * self._train_batch_size: min((index + 1) * self._train_batch_size, record_num)]
             batch_input = all_records_ndarray[idx]
             batch_input_dict = {}
-            for i in range(self._feature_columns_dims):
-                name = 'col_%d' % i
-                batch_input_dict[name] = pd.Series(batch_input[:,i])
+            for i, feature in enumerate(self._feature_columns):
+                batch_input_dict[feature.name] = pd.Series(batch_input[:, i])
 
             loss = self.train_on_batch(x=batch_input_dict, y=p[idx])
             if ite % 100 == 0:
