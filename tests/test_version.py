@@ -1,5 +1,4 @@
 import sqlflow_models
-import unittest
 
 
 def test_answer():

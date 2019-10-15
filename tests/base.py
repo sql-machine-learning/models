@@ -1,5 +1,6 @@
-import unittest
 import tensorflow as tf
+import unittest
+
 
 def train_input_fn(features, labels, batch_size=32):
     dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels))
@@ -7,21 +8,27 @@ def train_input_fn(features, labels, batch_size=32):
     return dataset
 
 
-def prepare_dataset():
-    pass
+def eval_input_fn(features, labels, batch_size=32):
+    dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels))
+    dataset = dataset.batch(batch_size)
+    return dataset
 
 
 class BaseTestCases:
     class BaseTest(unittest.TestCase):
-        def __init__(self):
-            super(BaseTestCases.BaseTest, self).__init__()
-            self.model, self.features, self.label = None, None, None
+        def setUp(self):
+            self.model, self.features, self.label = None, {}, None
 
         def test_train_and_predict(self):
-            train_input_fn(self.features, self.label)
+            self.setUp()
 
-            self
-            print('Calling BaseTest:testCommon')
-            value = 5
-            self.assertEquals(value, 5)
-
+            self.model.compile(optimizer=self.model.default_optimizer(),
+                loss=self.model.default_loss(),
+                metrics=["accuracy"])
+            self.model.fit(train_input_fn(self.features, self.label),
+                epochs=self.model.default_training_epochs(),
+                steps_per_epoch=100, verbose=0)
+            loss, acc = self.model.evaluate(eval_input_fn(self.features, self.label))
+            print(loss, acc)
+            assert(loss < 10)
+            assert(acc > 0.1)

@@ -27,15 +27,15 @@ class DNNClassifier(tf.keras.Model):
 
     def default_optimizer(self):
         """Default optimizer name. Used in model.compile."""
-        return 'adam'
+        return tf.keras.optimizers.Adagrad(lr=0.1)
 
     def default_loss(self):
         """Default loss function. Used in model.compile."""
-        return 'categorical_crossentropy'
+        return 'sparse_categorical_crossentropy'
 
     def default_training_epochs(self):
         """Default training epochs. Used in model.fit."""
-        return 5
+        return 2
 
     def prepare_prediction_column(self, prediction):
         """Return the class label of highest probability."""
