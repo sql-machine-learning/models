@@ -14,7 +14,7 @@ def get_model(feature_columns, field_metas, learning_rate=0.01):
     return tf.keras.Model(inputs=[v for v in feature_layer_inputs.values()], outputs=pred)
 
 def loss():
-    return 'sparse_categorical_crossentropy'
+    return 'binary_crossentropy'
 
 def epochs():
     return 1
