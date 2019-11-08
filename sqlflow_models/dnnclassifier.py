@@ -25,17 +25,13 @@ class DNNClassifier(tf.keras.Model):
             x = hidden_layer(x)
         return self.prediction_layer(x)
 
-    def default_optimizer(self):
+    def optimizer(self):
         """Default optimizer name. Used in model.compile."""
         return tf.keras.optimizers.Adagrad(lr=0.1)
 
-    def default_loss(self):
+    def loss(self):
         """Default loss function. Used in model.compile."""
         return 'sparse_categorical_crossentropy'
-
-    def default_training_epochs(self):
-        """Default training epochs. Used in model.fit."""
-        return 2
 
     def prepare_prediction_column(self, prediction):
         """Return the class label of highest probability."""

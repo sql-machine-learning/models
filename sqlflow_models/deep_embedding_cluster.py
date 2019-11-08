@@ -106,10 +106,10 @@ class DeepEmbeddingClusterModel(keras.Model):
 
         self.clustering_layer = ClusteringLayer(name='clustering', n_clusters=self._n_clusters)
 
-    def default_optimizer(self):
+    def optimizer(self):
         return self._cluster_optimizer
 
-    def default_loss(self):
+    def loss(self):
         return self._default_loss
 
     @staticmethod
