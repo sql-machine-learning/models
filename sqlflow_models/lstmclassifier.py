@@ -27,10 +27,10 @@ class StackedBiLSTMClassifier(tf.keras.Model):
         if self.n_classes == 2:
             # special setup for binary classification
             pred_act = 'sigmoid'
-            self.loss = 'binary_crossentropy'
+            self._loss = 'binary_crossentropy'
         else:
             pred_act = 'softmax'
-            self.loss = 'categorical_crossentropy'
+            self._loss = 'categorical_crossentropy'
         self.pred = tf.keras.layers.Dense(n_classes, activation=pred_act)
 
     def call(self, inputs):
@@ -49,7 +49,7 @@ class StackedBiLSTMClassifier(tf.keras.Model):
 
     def loss(self):
         """Default loss function. Used in model.compile."""
-        return self.loss
+        return self._loss
 
 
     def prepare_prediction_column(self, prediction):
