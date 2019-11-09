@@ -22,11 +22,11 @@ class BaseTestCases:
         def test_train_and_predict(self):
             self.setUp()
 
-            self.model.compile(optimizer=self.model.default_optimizer(),
-                loss=self.model.default_loss(),
+            self.model.compile(optimizer=self.model.optimizer(),
+                loss=self.model.loss(),
                 metrics=["accuracy"])
             self.model.fit(train_input_fn(self.features, self.label),
-                epochs=self.model.default_training_epochs(),
+                epochs=1,
                 steps_per_epoch=100, verbose=0)
             loss, acc = self.model.evaluate(eval_input_fn(self.features, self.label))
             print(loss, acc)
