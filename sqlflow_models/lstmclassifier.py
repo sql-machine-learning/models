@@ -1,5 +1,7 @@
 import tensorflow as tf
 
+_loss = ''
+
 class StackedBiLSTMClassifier(tf.keras.Model):
     def __init__(self, feature_columns, stack_units=[32], hidden_size=64, n_classes=2):
         """StackedBiLSTMClassifier
@@ -10,6 +12,7 @@ class StackedBiLSTMClassifier(tf.keras.Model):
         :param n_classes: Target number of classes.
         :type n_classes: int.
         """
+        global _loss
         super(StackedBiLSTMClassifier, self).__init__()
 
         self.feature_layer = tf.keras.experimental.SequenceFeatures(feature_columns)
@@ -27,10 +30,10 @@ class StackedBiLSTMClassifier(tf.keras.Model):
         if self.n_classes == 2:
             # special setup for binary classification
             pred_act = 'sigmoid'
-            self._loss = 'binary_crossentropy'
+            _loss = 'binary_crossentropy'
         else:
             pred_act = 'softmax'
-            self._loss = 'categorical_crossentropy'
+            _loss = 'categorical_crossentropy'
         self.pred = tf.keras.layers.Dense(n_classes, activation=pred_act)
 
     def call(self, inputs):
@@ -43,16 +46,18 @@ class StackedBiLSTMClassifier(tf.keras.Model):
         x = self.hidden(x)
         return self.pred(x)
 
-    def optimizer(self):
-        """Default optimizer name. Used in model.compile."""
-        return 'adam'
+def get_model(feature_columns, stack_units=[32], hidden_size=64, n_classes=2):
+    return StackedBiLSTMClassifier(feature_columns,
+        stack_units=stack_units, hidden_size=hidden_size, n_classes=n_classes)
 
-    def loss(self):
-        """Default loss function. Used in model.compile."""
-        return self._loss
+def optimizer():
+    """Default optimizer name. Used in model.compile."""
+    return 'adam'
 
+def loss():
+    global _loss
+    return _loss
 
-    def prepare_prediction_column(self, prediction):
-        """Return the class label of highest probability."""
-        return prediction.argmax(axis=-1)
-
+def prepare_prediction_column(prediction):
+    """Return the class label of highest probability."""
+    return prediction.argmax(axis=-1)

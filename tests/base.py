@@ -18,12 +18,13 @@ class BaseTestCases:
     class BaseTest(unittest.TestCase):
         def setUp(self):
             self.model, self.features, self.label = None, {}, None
+            self.model_pkg = None
 
         def test_train_and_predict(self):
             self.setUp()
 
-            self.model.compile(optimizer=self.model.optimizer(),
-                loss=self.model.loss(),
+            self.model.compile(optimizer=self.model_pkg.optimizer(),
+                loss=self.model_pkg.loss(),
                 metrics=["accuracy"])
             self.model.fit(train_input_fn(self.features, self.label),
                 epochs=1,

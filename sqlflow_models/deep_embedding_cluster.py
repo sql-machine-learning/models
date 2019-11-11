@@ -22,6 +22,8 @@ from tensorflow.python.keras.losses import kld
 from tensorflow.python.keras.optimizers import SGD
 import pandas as pd
 
+_train_lr = 0.01
+_default_loss = kld
 
 class DeepEmbeddingClusterModel(keras.Model):
 
@@ -105,12 +107,6 @@ class DeepEmbeddingClusterModel(keras.Model):
                                              name='encoder_%d' % i))
 
         self.clustering_layer = ClusteringLayer(name='clustering', n_clusters=self._n_clusters)
-
-    def optimizer(self):
-        return self._cluster_optimizer
-
-    def loss(self):
-        return self._default_loss
 
     @staticmethod
     def target_distribution(q):
@@ -272,6 +268,48 @@ class DeepEmbeddingClusterModel(keras.Model):
             print(self.clustering_layer.name + ' : ')
             print(self.clustering_layer.get_weights())
 
+def get_model(feature_columns,
+              n_clusters=10,
+              kmeans_init=20,
+              run_pretrain=True,
+              existed_pretrain_model=None,
+              pretrain_dims=None,
+              pretrain_activation_func='relu',
+              pretrain_batch_size=256,
+              train_batch_size=256,
+              pretrain_epochs=10,
+              pretrain_initializer='glorot_uniform',
+              pretrain_lr=1,
+              train_lr=0.01,
+              train_max_iters=8000,
+              update_interval=100,
+              tol=0.001,
+              loss=kld):
+    return DeepEmbeddingClusterModel(feature_columns,
+        n_clusters=n_clusters,
+        kmeans_init=kmeans_init,
+        run_pretrain=run_pretrain,
+        existed_pretrain_model=existed_pretrain_model,
+        pretrain_dims=pretrain_dims,
+        pretrain_activation_func=pretrain_activation_func,
+        pretrain_batch_size=pretrain_batch_size,
+        train_batch_size=train_batch_size,
+        pretrain_epochs=pretrain_epochs,
+        pretrain_initializer=pretrain_initializer,
+        pretrain_lr=pretrain_lr,
+        train_lr=train_lr,
+        train_max_iters=train_max_iters,
+        update_interval=update_interval,
+        tol=tol,
+        loss=loss)
+
+def optimizer():
+    global _train_lr
+    return SGD(lr=_train_lr, momentum=0.9)
+
+def loss():
+    global _default_loss
+    return _default_loss
 
 class ClusteringLayer(Layer):
     def __init__(self, n_clusters, alpha=1.0, **kwargs):
