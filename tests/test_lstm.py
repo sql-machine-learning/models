@@ -19,8 +19,7 @@ class TestStackedBiLSTMClassifier(BaseTestCases.BaseTest):
             fea,
             dimension=32)
         feature_columns = [emb]
-        self.model_pkg = sqlflow_models.lstmclassifier
-        self.model = self.model_pkg.get_model(feature_columns=feature_columns, stack_units=[64, 32])
+        self.model = sqlflow_models.StackedBiLSTMClassifier(feature_columns=feature_columns, stack_units=[64, 32])
 
 
 if __name__ == '__main__':

@@ -64,13 +64,15 @@ class DeepEmbeddingClusterModel(keras.Model):
         :param tol: tol.
         :param loss: Default 'kld' when init.
         """
+        global _train_lr
+        global _default_loss
         super(DeepEmbeddingClusterModel, self).__init__(name='DECModel')
 
         # Common
         self._feature_columns = feature_columns
         self._feature_columns_dims = len(self._feature_columns)
         self._n_clusters = n_clusters
-        self._default_loss = loss
+        _default_loss = loss
         self._train_max_iters = train_max_iters
         self._train_batch_size = train_batch_size
         self._update_interval = update_interval
@@ -92,8 +94,8 @@ class DeepEmbeddingClusterModel(keras.Model):
         self._kmeans_init = kmeans_init
 
         # Cluster
-        self._train_lr = train_lr
-        self._cluster_optimizer = SGD(lr=self._train_lr, momentum=0.9)
+        _train_lr = train_lr
+        self._cluster_optimizer = SGD(lr=_train_lr, momentum=0.9)
 
         # Build model
         self._n_stacks = len(self._pretrain_dims)
@@ -267,41 +269,6 @@ class DeepEmbeddingClusterModel(keras.Model):
             # Cluster
             print(self.clustering_layer.name + ' : ')
             print(self.clustering_layer.get_weights())
-
-def get_model(feature_columns,
-              n_clusters=10,
-              kmeans_init=20,
-              run_pretrain=True,
-              existed_pretrain_model=None,
-              pretrain_dims=None,
-              pretrain_activation_func='relu',
-              pretrain_batch_size=256,
-              train_batch_size=256,
-              pretrain_epochs=10,
-              pretrain_initializer='glorot_uniform',
-              pretrain_lr=1,
-              train_lr=0.01,
-              train_max_iters=8000,
-              update_interval=100,
-              tol=0.001,
-              loss=kld):
-    return DeepEmbeddingClusterModel(feature_columns,
-        n_clusters=n_clusters,
-        kmeans_init=kmeans_init,
-        run_pretrain=run_pretrain,
-        existed_pretrain_model=existed_pretrain_model,
-        pretrain_dims=pretrain_dims,
-        pretrain_activation_func=pretrain_activation_func,
-        pretrain_batch_size=pretrain_batch_size,
-        train_batch_size=train_batch_size,
-        pretrain_epochs=pretrain_epochs,
-        pretrain_initializer=pretrain_initializer,
-        pretrain_lr=pretrain_lr,
-        train_lr=train_lr,
-        train_max_iters=train_max_iters,
-        update_interval=update_interval,
-        tol=tol,
-        loss=loss)
 
 def optimizer():
     global _train_lr

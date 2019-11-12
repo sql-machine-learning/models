@@ -9,6 +9,7 @@ from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
 from sklearn.utils.linear_assignment_ import linear_assignment
 import numpy as np
 from tensorflow.python import keras
+import sys
 
 
 def train_input_fn(features, labels, batch_size=32):
@@ -71,8 +72,7 @@ class TestDeepEmbeddingCluster(BaseTestCases.BaseTest):
         feature_columns = [tf.feature_column.numeric_column(key) for key in self.features]
         pretrain_dims = [500, 500, 2000, 10]
         # Init model
-        self.model_pkg = sqlflow_models.deep_embedding_cluster
-        self.model = self.model_pkg.get_model(feature_columns=feature_columns,
+        self.model = sqlflow_models.DeepEmbeddingClusterModel(feature_columns=feature_columns,
                                                               n_clusters=10,
                                                               kmeans_init=20,
                                                               run_pretrain=True,
@@ -90,9 +90,9 @@ class TestDeepEmbeddingCluster(BaseTestCases.BaseTest):
 
     def test_train_and_predict(self):
         self.setUp()
-
-        self.model.compile(optimizer=self.model_pkg.optimizer(),
-                           loss=self.model_pkg.loss())
+        model_pkg = sys.modules[self.model.__module__]
+        self.model.compile(optimizer=model_pkg.optimizer(),
+                           loss=model_pkg.loss())
         self.model.sqlflow_train_loop(train_input_fn(self.features, self.label))
         metric = evaluate(x=eval_input_fn(self.features, self.label), y=self.label, model=self.model)
         print(metric)

@@ -46,10 +46,6 @@ class StackedBiLSTMClassifier(tf.keras.Model):
         x = self.hidden(x)
         return self.pred(x)
 
-def get_model(feature_columns, stack_units=[32], hidden_size=64, n_classes=2):
-    return StackedBiLSTMClassifier(feature_columns,
-        stack_units=stack_units, hidden_size=hidden_size, n_classes=n_classes)
-
 def optimizer():
     """Default optimizer name. Used in model.compile."""
     return 'adam'
