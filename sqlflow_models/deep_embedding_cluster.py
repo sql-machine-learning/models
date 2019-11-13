@@ -243,11 +243,6 @@ class DeepEmbeddingClusterModel(keras.Model):
                 print('{} Training at iter:{} -> loss:{}.'.format(datetime.now(), ite, loss))
             index = index + 1 if (index + 1) * self._train_batch_size <= record_num else 0  # Update index
 
-    @staticmethod
-    def prepare_prediction_column(prediction):
-        """ Return the cluster label of the highest probability. """
-        return prediction.argmax(axis=-1)
-
     def display_model_info(self, verbose=0):
         if verbose >= 0:
             print('Summary : ')
@@ -277,6 +272,10 @@ def optimizer():
 def loss():
     global _default_loss
     return _default_loss
+
+def prepare_prediction_column(prediction):
+    """ Return the cluster label of the highest probability. """
+    return prediction.argmax(axis=-1)
 
 class ClusteringLayer(Layer):
     def __init__(self, n_clusters, alpha=1.0, **kwargs):

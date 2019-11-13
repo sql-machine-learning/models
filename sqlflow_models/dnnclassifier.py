@@ -33,6 +33,6 @@ def loss():
     """Default loss function. Used in model.compile."""
     return 'sparse_categorical_crossentropy'
 
-def prepare_prediction_column(self, prediction):
+def prepare_prediction_column(prediction):
     """Return the class label of highest probability."""
     return prediction.argmax(axis=-1)
