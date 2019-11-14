@@ -22,6 +22,8 @@ from tensorflow.python.keras.losses import kld
 from tensorflow.python.keras.optimizers import SGD
 import pandas as pd
 
+_train_lr = 0.01
+_default_loss = kld
 
 class DeepEmbeddingClusterModel(keras.Model):
 
@@ -62,13 +64,15 @@ class DeepEmbeddingClusterModel(keras.Model):
         :param tol: tol.
         :param loss: Default 'kld' when init.
         """
+        global _train_lr
+        global _default_loss
         super(DeepEmbeddingClusterModel, self).__init__(name='DECModel')
 
         # Common
         self._feature_columns = feature_columns
         self._feature_columns_dims = len(self._feature_columns)
         self._n_clusters = n_clusters
-        self._default_loss = loss
+        _default_loss = loss
         self._train_max_iters = train_max_iters
         self._train_batch_size = train_batch_size
         self._update_interval = update_interval
@@ -90,8 +94,8 @@ class DeepEmbeddingClusterModel(keras.Model):
         self._kmeans_init = kmeans_init
 
         # Cluster
-        self._train_lr = train_lr
-        self._cluster_optimizer = SGD(lr=self._train_lr, momentum=0.9)
+        _train_lr = train_lr
+        self._cluster_optimizer = SGD(lr=_train_lr, momentum=0.9)
 
         # Build model
         self._n_stacks = len(self._pretrain_dims)
@@ -105,12 +109,6 @@ class DeepEmbeddingClusterModel(keras.Model):
                                              name='encoder_%d' % i))
 
         self.clustering_layer = ClusteringLayer(name='clustering', n_clusters=self._n_clusters)
-
-    def optimizer(self):
-        return self._cluster_optimizer
-
-    def loss(self):
-        return self._default_loss
 
     @staticmethod
     def target_distribution(q):
@@ -245,11 +243,6 @@ class DeepEmbeddingClusterModel(keras.Model):
                 print('{} Training at iter:{} -> loss:{}.'.format(datetime.now(), ite, loss))
             index = index + 1 if (index + 1) * self._train_batch_size <= record_num else 0  # Update index
 
-    @staticmethod
-    def prepare_prediction_column(prediction):
-        """ Return the cluster label of the highest probability. """
-        return prediction.argmax(axis=-1)
-
     def display_model_info(self, verbose=0):
         if verbose >= 0:
             print('Summary : ')
@@ -272,6 +265,17 @@ class DeepEmbeddingClusterModel(keras.Model):
             print(self.clustering_layer.name + ' : ')
             print(self.clustering_layer.get_weights())
 
+def optimizer():
+    global _train_lr
+    return SGD(lr=_train_lr, momentum=0.9)
+
+def loss():
+    global _default_loss
+    return _default_loss
+
+def prepare_prediction_column(prediction):
+    """ Return the cluster label of the highest probability. """
+    return prediction.argmax(axis=-1)
 
 class ClusteringLayer(Layer):
     def __init__(self, n_clusters, alpha=1.0, **kwargs):
