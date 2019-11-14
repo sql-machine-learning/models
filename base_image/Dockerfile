@@ -13,4 +13,7 @@ RUN git clone https://github.com/sql-machine-learning/elasticdl.git && \
 cd elasticdl && \
 git checkout eb93e2a48e6fe8f077c4937d8c0c5987faa9cf56 && \
 pip install -r elasticdl/requirements.txt && \
-python setup.py install
+python setup.py install && \
+cp elasticdl/requirements.txt /usr/local/lib/python3.7/site-packages/elasticdl-develop-py3.7.egg/elasticdl/  && \
+cp elasticdl/proto/*.proto /usr/local/lib/python3.7/site-packages/elasticdl-develop-py3.7.egg/elasticdl/proto && \
+cd .. && rm -rf elasticdl

@@ -36,3 +36,50 @@ def loss():
 def prepare_prediction_column(prediction):
     """Return the class label of highest probability."""
     return prediction.argmax(axis=-1)
+
+# iris_dataset_fn is only used to test using this model in ElasticDL.
+def iris_dataset_fn(dataset, mode, metadata):
+    def _parse_data(record):
+        label_col_name = "class"
+        record = tf.strings.to_number(record, tf.float32)
+
+        def _get_features_without_labels(
+            record, label_col_ind, features_shape
+        ):
+            features = [
+                record[:label_col_ind],
+                record[label_col_ind + 1 :],  # noqa: E203
+            ]
+            features = tf.concat(features, -1)
+            return tf.reshape(features, features_shape)
+
+        features_shape = (4, 1)
+        labels_shape = (1,)
+        if mode != Mode.PREDICTION:
+            if label_col_name not in metadata.column_names:
+                raise ValueError(
+                    "Missing the label column '%s' in the retrieved "
+                    "ODPS table." % label_col_name
+                )
+            label_col_ind = metadata.column_names.index(label_col_name)
+            labels = tf.reshape(record[label_col_ind], labels_shape)
+            return (
+                _get_features_without_labels(
+                    record, label_col_ind, features_shape
+                ),
+                labels,
+            )
+        else:
+            if label_col_name in metadata.column_names:
+                label_col_ind = metadata.column_names.index(label_col_name)
+                return _get_features_without_labels(
+                    record, label_col_ind, features_shape
+                )
+            else:
+                return tf.reshape(record, features_shape)
+
+    dataset = dataset.map(_parse_data)
+
+    if mode == Mode.TRAINING:
+        dataset = dataset.shuffle(buffer_size=200)
+    return dataset
