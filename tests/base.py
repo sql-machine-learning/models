@@ -1,5 +1,6 @@
 import tensorflow as tf
 import unittest
+import sys
 
 
 def train_input_fn(features, labels, batch_size=32):
@@ -21,9 +22,9 @@ class BaseTestCases:
 
         def test_train_and_predict(self):
             self.setUp()
-
-            self.model.compile(optimizer=self.model.optimizer(),
-                loss=self.model.loss(),
+            model_pkg = sys.modules[self.model.__module__]
+            self.model.compile(optimizer=model_pkg.optimizer(),
+                loss=model_pkg.loss(),
                 metrics=["accuracy"])
             self.model.fit(train_input_fn(self.features, self.label),
                 epochs=1,
