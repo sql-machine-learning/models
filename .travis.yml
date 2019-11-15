@@ -27,6 +27,7 @@ jobs:
       -e ODPS_ACCESS_ID=$ODPS_ACCESS_ID -e ODPS_ACCESS_KEY=$ODPS_ACCESS_KEY sqlflow/sqlflow_models bash -c "elasticdl train --image_base=sqlflow/sqlflow_models
       --model_def=dnnclassifier.DNNClassifier --training_data=sqlflow_test_iris_train --dataset_fn=iris_dataset_fn --data_reader_params='columns=["sepal_length", "sepal_width", "petal_length", "petal_width", "class"]'
       --envs='ODPS_PROJECT_NAME=gomaxcompute_driver_w7u,ODPS_ACCESS_ID=$ODPS_ACCESS_ID,ODPS_ACCESS_KEY=$ODPS_ACCESS_KEY' --minibatch_size=1 --model_zoo=/sqlflow_models --job_name=testrun --num_minibatches_per_task=2 --image_pull_policy=Never"
+    - curl -s https://raw.githubusercontent.com/sql-machine-learning/elasticdl/c7f678e2617d1e0f20683a84275558e5adf8f452/scripts/validate_job_status.sh | bash /dev/stdin odps
 env:
   global:
   - secure: BGbJyf7MERjVsTzP3/DPjYQo4eLOIi5KruhvMTZNp93e3uInI/dAgIg22IS1jNg1+x0pg5gSQaLGNWfJOwD+pMAUe1Ie0LZ2L6cgAti11hWsgbC+NsoouY7phopvFzADPsfjUyd+OQER2cRi41Kvffz35ic7tGeJICCu8Ly9R60SqYjsLgeP4xJocslKLTIEHyMVAZADWXMbNJ/L6xMvuz1aqWkEY23CDzk6U4ZmpnkjYquIdqS6+seswOTJlbJBnGJFb+DC1xng9ETsAfIO/jEhQj0uPIHoX2bGgjqzrkbBbcTgYZTgSikJ9S0Wl+TvAaDRL6IY6Cigdt0VpRvO4T71HT5xq6cATNbilVQ/E8o7vOGOhb3fqzCbknpUyk7CBGlcNmZ5wahajdcFumxPCwMOykk/qJWeCS4uS0O85glwREoM88H7JU3TGyOwFpnliGA33swhS5Cv3LI6vJ1AWgcUTIy2a9+0FQMkCkve9gb4ruViouD/lqG4i4zIy8ic+h4snYWuWvFb6XtduFZR8zgDdkbv9asjvA24gnJxItq1g91+P/FyOaEaMK1OAy6yeSm55rID6GnvK7Ld3VLbYrixyqPcnTBDhINlxhmXLV43+Unt7DtuchQLCVEJbXVp6m9KeCkPCV3TNfWS1dhL0F06uv7mtqk1rAMOyPRZuf0=
