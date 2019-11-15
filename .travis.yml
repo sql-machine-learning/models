@@ -6,18 +6,18 @@ branches:
   - develop
   - "/^v\\d+\\.\\d+(\\.\\d+)?(-\\S*)?$/"
 language: python
-python:
-- 3.6
-- 3.7
+# python:
+# - 3.6
+# - 3.7
 service:
 - docker
 install:
 - python setup.py -q install
 jobs:
   include:
-  - stage: UnitTest
-    script:
-    - python setup.py -q test
+  # - stage: UnitTest
+  #   script:
+  #   - python setup.py -q test
   - state: ElasticDLTest
     script:
     - cd base_image && docker build -t sqlflow/modelzoo_base . && cd ..
