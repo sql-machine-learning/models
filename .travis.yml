@@ -13,15 +13,11 @@ service:
 - docker
 install:
 - python setup.py -q install
+script:
+  - python setup.py -q test
+
 jobs:
   include:
-  - stage: UnitTest
-    python: 3.6
-    script:
-    - python setup.py -q test
-  - script:
-    - python setup.py -q test
-    python: 3.7
   - stage: ElasticDLTest
     script:
     - cd base_image && docker build -t sqlflow/modelzoo_base . && cd ..
