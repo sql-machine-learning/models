@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 class DNNClassifier(tf.keras.Model):
-    def __init__(self, feature_columns, hidden_units=[10,10], n_classes=2):
+    def __init__(self, feature_column=None, hidden_units=[10,10], n_classes=2):
         """DNNClassifier
         :param feature_columns: feature columns.
         :type feature_columns: list[tf.feature_column].
@@ -11,16 +11,20 @@ class DNNClassifier(tf.keras.Model):
         :type n_classes: int.
         """
         super(DNNClassifier, self).__init__()
-
-        # combines all the data as a dense tensor
-        self.feature_layer = tf.keras.layers.DenseFeatures(feature_columns)
+        self.feature_layer = None
+        if feature_column is not None:
+            # combines all the data as a dense tensor
+            self.feature_layer = tf.keras.layers.DenseFeatures(feature_columns)
         self.hidden_layers = []
         for hidden_unit in hidden_units:
             self.hidden_layers.append(tf.keras.layers.Dense(hidden_unit))
         self.prediction_layer = tf.keras.layers.Dense(n_classes, activation='softmax')
 
     def call(self, inputs):
-        x = self.feature_layer(inputs)
+        if self.feature_layer is not None:
+            x = self.feature_layer(inputs)
+        else:
+            x = inputs
         for hidden_layer in self.hidden_layers:
             x = hidden_layer(x)
         return self.prediction_layer(x)

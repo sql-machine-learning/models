@@ -27,6 +27,7 @@ jobs:
       -e ODPS_ACCESS_ID=LTAInsAX53Hhaccp -e ODPS_ACCESS_KEY=I2dDwOUEY1QYTzA5ZQfDR3A3cn5SUb sqlflow/sqlflow_models bash -c "elasticdl train --image_base=sqlflow/sqlflow_models
       --model_def=dnnclassifier.DNNClassifier --training_data=sqlflow_test_iris_train --dataset_fn=iris_dataset_fn --data_reader_params='columns=["sepal_length", "sepal_width", "petal_length", "petal_width", "class"]'
       --envs='ODPS_PROJECT_NAME=gomaxcompute_driver_w7u,ODPS_ACCESS_ID=$ODPS_ACCESS_ID,ODPS_ACCESS_KEY=$ODPS_ACCESS_KEY' --minibatch_size=1 --model_zoo=/sqlflow_models --job_name=test-odps --num_minibatches_per_task=2 --image_pull_policy=Never"
+      --num_workers=2 --master_resource_request="cpu=400m,memory=1024Mi" --master_resource_limit="cpu=1,memory=2048Mi" --worker_resource_request="cpu=400m,memory=2048Mi" --worker_resource_limit="cpu=1,memory=3072Mi"
     - curl -s https://raw.githubusercontent.com/sql-machine-learning/elasticdl/c7f678e2617d1e0f20683a84275558e5adf8f452/scripts/validate_job_status.sh | bash /dev/stdin odps
 env:
   global:
