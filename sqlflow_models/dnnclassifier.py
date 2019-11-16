@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 class DNNClassifier(tf.keras.Model):
-    def __init__(self, feature_column=None, hidden_units=[10,10], n_classes=2):
+    def __init__(self, feature_columns=None, hidden_units=[10,10], n_classes=2):
         """DNNClassifier
         :param feature_columns: feature columns.
         :type feature_columns: list[tf.feature_column].
@@ -12,7 +12,7 @@ class DNNClassifier(tf.keras.Model):
         """
         super(DNNClassifier, self).__init__()
         self.feature_layer = None
-        if feature_column is not None:
+        if feature_columns is not None:
             # combines all the data as a dense tensor
             self.feature_layer = tf.keras.layers.DenseFeatures(feature_columns)
         self.hidden_layers = []
