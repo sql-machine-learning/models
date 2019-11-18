@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 class DNNClassifier(tf.keras.Model):
-    def __init__(self, feature_columns=None, hidden_units=[10,10], n_classes=2):
+    def __init__(self, feature_columns=None, hidden_units=[10,10], n_classes=3):
         """DNNClassifier
         :param feature_columns: feature columns.
         :type feature_columns: list[tf.feature_column].
@@ -20,11 +20,11 @@ class DNNClassifier(tf.keras.Model):
             self.hidden_layers.append(tf.keras.layers.Dense(hidden_unit))
         self.prediction_layer = tf.keras.layers.Dense(n_classes, activation='softmax')
 
-    def call(self, inputs):
+    def call(self, inputs, training=True):
         if self.feature_layer is not None:
             x = self.feature_layer(inputs)
         else:
-            x = inputs
+            x = tf.keras.layers.Flatten()(inputs)
         for hidden_layer in self.hidden_layers:
             x = hidden_layer(x)
         return self.prediction_layer(x)
@@ -33,16 +33,27 @@ def optimizer(learning_rate=0.1):
     """Default optimizer name. Used in model.compile."""
     return tf.keras.optimizers.Adagrad(lr=learning_rate)
 
-def loss():
+def loss(output, labels):
     """Default loss function. Used in model.compile."""
-    return 'sparse_categorical_crossentropy'
+    # return 'sparse_categorical_crossentropy'
+    return tf.reduce_mean(
+        tf.keras.losses.sparse_categorical_crossentropy(labels, output))
 
 def prepare_prediction_column(prediction):
     """Return the class label of highest probability."""
     return prediction.argmax(axis=-1)
 
-# iris_dataset_fn is only used to test using this model in ElasticDL.
-def iris_dataset_fn(dataset, mode, metadata):
+def eval_metrics_fn():
+    return {
+        "accuracy": lambda labels, predictions: tf.equal(
+            tf.argmax(predictions, 1, output_type=tf.int32),
+            tf.cast(tf.reshape(labels, [-1]), tf.int32),
+        )
+    }
+
+# dataset_fn is only used to test using this model in ElasticDL.
+def dataset_fn(dataset, mode, metadata):
+    from elasticdl.python.common.constants import Mode
     def _parse_data(record):
         label_col_name = "class"
         record = tf.strings.to_number(record, tf.float32)

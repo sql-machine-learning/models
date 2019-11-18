@@ -55,10 +55,18 @@ def optimizer():
     """Default optimizer name. Used in model.compile."""
     return 'adam'
 
-def loss():
+def loss(output, labels):
     global _loss
     return _loss
 
 def prepare_prediction_column(prediction):
     """Return the class label of highest probability."""
     return prediction.argmax(axis=-1)
+
+def eval_metrics_fn():
+    return {
+        "accuracy": lambda labels, predictions: tf.equal(
+            tf.argmax(predictions, 1, output_type=tf.int32),
+            tf.cast(tf.reshape(labels, [-1]), tf.int32),
+        )
+    }
