@@ -39,6 +39,11 @@ def loss(output, labels):
     return tf.reduce_mean(
         tf.keras.losses.sparse_categorical_crossentropy(labels, output))
 
+# FIXME(typhoonzero): use the name loss once ElasticDL has updated.
+def loss_new(y_true, y_pred):
+    return tf.reduce_mean(
+        tf.keras.losses.sparse_categorical_crossentropy(y_true, y_pred))
+
 def prepare_prediction_column(prediction):
     """Return the class label of highest probability."""
     return prediction.argmax(axis=-1)
@@ -52,6 +57,7 @@ def eval_metrics_fn():
     }
 
 # dataset_fn is only used to test using this model in ElasticDL.
+# TODO(typhoonzero): remove dataset_fn once https://github.com/sql-machine-learning/elasticdl/issues/1482 is done.
 def dataset_fn(dataset, mode, metadata):
     from elasticdl.python.common.constants import Mode
     def _parse_data(record):

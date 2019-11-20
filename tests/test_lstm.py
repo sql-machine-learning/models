@@ -20,6 +20,7 @@ class TestStackedBiLSTMClassifier(BaseTestCases.BaseTest):
             dimension=32)
         feature_columns = [emb]
         self.model = sqlflow_models.StackedBiLSTMClassifier(feature_columns=feature_columns, stack_units=[64, 32])
+        self.model_class = sqlflow_models.DNNClassifier
 
 
 if __name__ == '__main__':

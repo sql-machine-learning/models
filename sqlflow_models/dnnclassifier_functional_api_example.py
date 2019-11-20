@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-def get_model(feature_columns, field_metas, learning_rate=0.01):
+def dnnclassifier_functional_model(feature_columns, field_metas, learning_rate=0.01):
     feature_layer_inputs = dict()
     for fmkey in field_metas:
         fm = field_metas[fmkey]
@@ -13,8 +13,12 @@ def get_model(feature_columns, field_metas, learning_rate=0.01):
     pred = tf.keras.layers.Dense(1, activation='sigmoid')(x)
     return tf.keras.Model(inputs=[v for v in feature_layer_inputs.values()], outputs=pred)
 
-def loss():
-    return 'binary_crossentropy'
+def loss(output, labels):
+    return tf.reduce_mean(tf.keras.losses.binary_crossentropy(labels, output))
+
+# FIXME(typhoonzero): use the name loss once ElasticDL has updated.
+def loss_new(y_true, y_pred):
+    return tf.reduce_mean(tf.keras.losses.binary_crossentropy(y_true, y_pred))
 
 def epochs():
     return 1

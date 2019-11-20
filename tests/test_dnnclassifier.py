@@ -14,6 +14,7 @@ class TestDNNClassifier(BaseTestCases.BaseTest):
         self.label = [0 for _ in range(50)] + [1 for _ in range(50)]
         feature_columns = [tf.feature_column.numeric_column(key) for key in
                            self.features]
+        self.model_class = sqlflow_models.DNNClassifier
         self.model = sqlflow_models.DNNClassifier(feature_columns=feature_columns)
 
 
