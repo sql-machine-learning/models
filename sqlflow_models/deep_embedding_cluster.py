@@ -48,7 +48,7 @@ class DeepEmbeddingClusterModel(keras.Model):
 
         """
         Implement cluster model mostly based on DEC.
-        :param feature_columns:
+        :param feature_columns: a list of tf.feature_column
         :param n_clusters: Number of clusters.
         :param kmeans_init: Number of running K-Means to get best choice of centroids.
         :param run_pretrain: Run pre-train process or not.
