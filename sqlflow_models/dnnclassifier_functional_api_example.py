@@ -13,12 +13,8 @@ def dnnclassifier_functional_model(feature_columns, field_metas, learning_rate=0
     pred = tf.keras.layers.Dense(1, activation='sigmoid')(x)
     return tf.keras.Model(inputs=[v for v in feature_layer_inputs.values()], outputs=pred)
 
-def loss(output, labels):
+def loss(labels, output):
     return tf.reduce_mean(tf.keras.losses.binary_crossentropy(labels, output))
-
-# FIXME(typhoonzero): use the name loss once ElasticDL has updated.
-def loss_new(y_true, y_pred):
-    return tf.reduce_mean(tf.keras.losses.binary_crossentropy(y_true, y_pred))
 
 def epochs():
     return 1

@@ -33,16 +33,10 @@ def optimizer(learning_rate=0.1):
     """Default optimizer name. Used in model.compile."""
     return tf.keras.optimizers.Adagrad(lr=learning_rate)
 
-def loss(output, labels):
+def loss(labels, output):
     """Default loss function. Used in model.compile."""
-    # return 'sparse_categorical_crossentropy'
     return tf.reduce_mean(
         tf.keras.losses.sparse_categorical_crossentropy(labels, output))
-
-# FIXME(typhoonzero): use the name loss once ElasticDL has updated.
-def loss_new(y_true, y_pred):
-    return tf.reduce_mean(
-        tf.keras.losses.sparse_categorical_crossentropy(y_true, y_pred))
 
 def prepare_prediction_column(prediction):
     """Return the class label of highest probability."""

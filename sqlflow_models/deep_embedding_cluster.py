@@ -269,13 +269,9 @@ def optimizer():
     global _train_lr
     return SGD(lr=_train_lr, momentum=0.9)
 
-def loss(output, labels):
+def loss(labels, output):
     global _default_loss
-    return _default_loss
-
-# FIXME(typhoonzero): use the name loss once ElasticDL has updated.
-def loss_new(y_true, y_pred):
-    return _default_loss(y_true, y_pred)
+    return _default_loss(labels, output)
 
 def prepare_prediction_column(prediction):
     """ Return the cluster label of the highest probability. """
