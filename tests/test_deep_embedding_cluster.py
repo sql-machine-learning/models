@@ -66,8 +66,6 @@ class TestDeepEmbeddingCluster(BaseTestCases.BaseTest):
         for feature_name, feature_values in zip(feature_column_names, list(x.T)):
             self.features[feature_name] = feature_values
 
-        # print(self.features)
-
         self.label = y
         feature_columns = [tf.feature_column.numeric_column(key) for key in self.features]
         pretrain_dims = [500, 500, 2000, 10]
@@ -87,12 +85,13 @@ class TestDeepEmbeddingCluster(BaseTestCases.BaseTest):
                                                               update_interval=20,
                                                               tol=0.001,
                                                               loss=kld)
+        self.model_class = sqlflow_models.DeepEmbeddingClusterModel
 
     def test_train_and_predict(self):
         self.setUp()
-        model_pkg = sys.modules[self.model.__module__]
+        model_pkg = sys.modules[self.model_class.__module__]
         self.model.compile(optimizer=model_pkg.optimizer(),
-                           loss=model_pkg.loss())
+                           loss=model_pkg.loss_new)
         self.model.sqlflow_train_loop(train_input_fn(self.features, self.label))
         metric = evaluate(x=eval_input_fn(self.features, self.label), y=self.label, model=self.model)
         print(metric)

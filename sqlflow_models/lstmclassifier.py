@@ -3,7 +3,7 @@ import tensorflow as tf
 _loss = ''
 
 class StackedBiLSTMClassifier(tf.keras.Model):
-    def __init__(self, feature_columns, stack_units=[32], hidden_size=64, n_classes=2):
+    def __init__(self, feature_columns=None, stack_units=[32], hidden_size=64, n_classes=2):
         """StackedBiLSTMClassifier
         :param feature_columns: All columns must be embedding of sequence column with same sequence_length.
         :type feature_columns: list[tf.embedding_column].
@@ -15,7 +15,9 @@ class StackedBiLSTMClassifier(tf.keras.Model):
         global _loss
         super(StackedBiLSTMClassifier, self).__init__()
 
-        self.feature_layer = tf.keras.experimental.SequenceFeatures(feature_columns)
+        self.feature_layer = None
+        if feature_columns is not None:
+            self.feature_layer = tf.keras.experimental.SequenceFeatures(feature_columns)
         self.stack_bilstm = []
         self.stack_size = len(stack_units)
         self.stack_units = stack_units
@@ -37,7 +39,10 @@ class StackedBiLSTMClassifier(tf.keras.Model):
         self.pred = tf.keras.layers.Dense(n_classes, activation=pred_act)
 
     def call(self, inputs):
-        x, seq_len = self.feature_layer(inputs)
+        if self.feature_layer:
+            x, seq_len = self.feature_layer(inputs)
+        else:
+            x, seq_len = inputs
         seq_mask = tf.sequence_mask(seq_len)
         if self.stack_size > 1:
             for i in range(self.stack_size - 1):
@@ -50,10 +55,29 @@ def optimizer():
     """Default optimizer name. Used in model.compile."""
     return 'adam'
 
-def loss():
+def loss(output, labels):
     global _loss
-    return _loss
+    if _loss == "binary_crossentropy":
+        return tf.reduce_mean(tf.keras.losses.binary_crossentropy(labels, output))
+    elif _loss == "categorical_crossentropy":
+        return tf.reduce_mean(tf.keras.losses.categorical_crossentropy(labels, output))
+
+# FIXME(typhoonzero): use the name loss once ElasticDL has updated.
+def loss_new(y_true, y_pred):
+    global _loss
+    if _loss == "binary_crossentropy":
+        return tf.reduce_mean(tf.keras.losses.binary_crossentropy(y_true, y_pred))
+    elif _loss == "categorical_crossentropy":
+        return tf.reduce_mean(tf.keras.losses.categorical_crossentropy(y_true, y_pred))
 
 def prepare_prediction_column(prediction):
     """Return the class label of highest probability."""
     return prediction.argmax(axis=-1)
+
+def eval_metrics_fn():
+    return {
+        "accuracy": lambda labels, predictions: tf.equal(
+            tf.argmax(predictions, 1, output_type=tf.int32),
+            tf.cast(tf.reshape(labels, [-1]), tf.int32),
+        )
+    }

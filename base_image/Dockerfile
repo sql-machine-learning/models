@@ -11,6 +11,7 @@ RUN curl --silent https://dl.google.com/go/go1.13.4.linux-amd64.tar.gz | tar -C 
 # install ElasticDL to manage ElasticDL jobs
 RUN git clone https://github.com/sql-machine-learning/elasticdl.git && \
 cd elasticdl && \
-git checkout eb93e2a48e6fe8f077c4937d8c0c5987faa9cf56 && \
+git checkout 2efbe5bfcc94cad9ca1838da8aabe639e21c05d1 && \
 pip install -r elasticdl/requirements.txt && \
-python setup.py install
+python setup.py install && \
+cd .. && rm -rf elasticdl

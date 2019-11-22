@@ -3,6 +3,7 @@ from tests.base import BaseTestCases
 
 import tensorflow as tf
 import unittest
+import sys
 
 
 def train_input_fn(features, labels, batch_size=32):
@@ -31,22 +32,9 @@ class TestDNNClassifier(BaseTestCases.BaseTest):
             "c3": {"name": "c3", "shape": [1], "dtype": tf.float32},
             "c4": {"name": "c4", "shape": [1], "dtype": tf.float32},
         }
-        self.module = sqlflow_models.dnnclassifier_functional_api_example
-        self.model = sqlflow_models.dnnclassifier_functional_api_example.get_model(feature_columns=feature_columns, field_metas=fieldmetas)
+        self.model = sqlflow_models.dnnclassifier_functional_model(feature_columns=feature_columns, field_metas=fieldmetas)
+        self.model_class = sqlflow_models.dnnclassifier_functional_model
 
-    def test_train_and_predict(self):
-            self.setUp()
-
-            self.model.compile(optimizer=self.module.optimizer(),
-                loss=self.module.loss(),
-                metrics=["accuracy"])
-            self.model.fit(train_input_fn(self.features, self.label),
-                epochs=self.module.epochs(),
-                steps_per_epoch=100, verbose=0)
-            loss, acc = self.model.evaluate(eval_input_fn(self.features, self.label))
-            print(loss, acc)
-            assert(loss < 10)
-            assert(acc > 0.1)
 
 if __name__ == '__main__':
     unittest.main()

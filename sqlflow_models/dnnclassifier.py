@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 class DNNClassifier(tf.keras.Model):
-    def __init__(self, feature_columns, hidden_units=[10,10], n_classes=2):
+    def __init__(self, feature_columns=None, hidden_units=[10,10], n_classes=3):
         """DNNClassifier
         :param feature_columns: feature columns.
         :type feature_columns: list[tf.feature_column].
@@ -11,16 +11,20 @@ class DNNClassifier(tf.keras.Model):
         :type n_classes: int.
         """
         super(DNNClassifier, self).__init__()
-
-        # combines all the data as a dense tensor
-        self.feature_layer = tf.keras.layers.DenseFeatures(feature_columns)
+        self.feature_layer = None
+        if feature_columns is not None:
+            # combines all the data as a dense tensor
+            self.feature_layer = tf.keras.layers.DenseFeatures(feature_columns)
         self.hidden_layers = []
         for hidden_unit in hidden_units:
             self.hidden_layers.append(tf.keras.layers.Dense(hidden_unit))
         self.prediction_layer = tf.keras.layers.Dense(n_classes, activation='softmax')
 
-    def call(self, inputs):
-        x = self.feature_layer(inputs)
+    def call(self, inputs, training=True):
+        if self.feature_layer is not None:
+            x = self.feature_layer(inputs)
+        else:
+            x = tf.keras.layers.Flatten()(inputs)
         for hidden_layer in self.hidden_layers:
             x = hidden_layer(x)
         return self.prediction_layer(x)
@@ -29,10 +33,74 @@ def optimizer(learning_rate=0.1):
     """Default optimizer name. Used in model.compile."""
     return tf.keras.optimizers.Adagrad(lr=learning_rate)
 
-def loss():
+def loss(output, labels):
     """Default loss function. Used in model.compile."""
-    return 'sparse_categorical_crossentropy'
+    # return 'sparse_categorical_crossentropy'
+    return tf.reduce_mean(
+        tf.keras.losses.sparse_categorical_crossentropy(labels, output))
+
+# FIXME(typhoonzero): use the name loss once ElasticDL has updated.
+def loss_new(y_true, y_pred):
+    return tf.reduce_mean(
+        tf.keras.losses.sparse_categorical_crossentropy(y_true, y_pred))
 
 def prepare_prediction_column(prediction):
     """Return the class label of highest probability."""
     return prediction.argmax(axis=-1)
+
+def eval_metrics_fn():
+    return {
+        "accuracy": lambda labels, predictions: tf.equal(
+            tf.argmax(predictions, 1, output_type=tf.int32),
+            tf.cast(tf.reshape(labels, [-1]), tf.int32),
+        )
+    }
+
+# dataset_fn is only used to test using this model in ElasticDL.
+# TODO(typhoonzero): remove dataset_fn once https://github.com/sql-machine-learning/elasticdl/issues/1482 is done.
+def dataset_fn(dataset, mode, metadata):
+    from elasticdl.python.common.constants import Mode
+    def _parse_data(record):
+        label_col_name = "class"
+        record = tf.strings.to_number(record, tf.float32)
+
+        def _get_features_without_labels(
+            record, label_col_ind, features_shape
+        ):
+            features = [
+                record[:label_col_ind],
+                record[label_col_ind + 1 :],  # noqa: E203
+            ]
+            features = tf.concat(features, -1)
+            return tf.reshape(features, features_shape)
+
+        features_shape = (4, 1)
+        labels_shape = (1,)
+        if mode != Mode.PREDICTION:
+            if label_col_name not in metadata.column_names:
+                raise ValueError(
+                    "Missing the label column '%s' in the retrieved "
+                    "ODPS table." % label_col_name
+                )
+            label_col_ind = metadata.column_names.index(label_col_name)
+            labels = tf.reshape(record[label_col_ind], labels_shape)
+            return (
+                _get_features_without_labels(
+                    record, label_col_ind, features_shape
+                ),
+                labels,
+            )
+        else:
+            if label_col_name in metadata.column_names:
+                label_col_ind = metadata.column_names.index(label_col_name)
+                return _get_features_without_labels(
+                    record, label_col_ind, features_shape
+                )
+            else:
+                return tf.reshape(record, features_shape)
+
+    dataset = dataset.map(_parse_data)
+
+    if mode == Mode.TRAINING:
+        dataset = dataset.shuffle(buffer_size=200)
+    return dataset
