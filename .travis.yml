@@ -20,8 +20,8 @@ jobs:
   include:
   - stage: ElasticDLTest
     script:
-    - cd base_image && docker build -t modelzoo_base . && cd ..
-    - cd sqlflow_models && docker build -t sqlflow_models . && cd ..
+    - cd base_image && docker build -t sqlflow/modelzoo_base . && cd ..
+    - cd sqlflow_models && docker build -t sqlflow/sqlflow_models . && cd ..
     - curl -s https://raw.githubusercontent.com/sql-machine-learning/elasticdl/4a995fe7eaf91bc5a9d50181e9aaaa14d15c8a09/scripts/setup_k8s_env.sh | bash
     - kubectl apply -f https://raw.githubusercontent.com/sql-machine-learning/elasticdl/develop/elasticdl/manifests/examples/elasticdl-rbac.yaml
     - docker run --rm -it --net=host
@@ -31,5 +31,5 @@ jobs:
       -v $PWD:/workspace
       -e ODPS_ACCESS_ID=$MAXCOMPUTE_AK
       -e ODPS_ACCESS_KEY=$MAXCOMPUTE_SK
-      sqlflow_models bash /workspace/scripts/test_elasticdl_submit.sh
+      sqlflow/sqlflow_models bash /workspace/scripts/test_elasticdl_submit.sh
     - curl -s https://raw.githubusercontent.com/sql-machine-learning/elasticdl/c7f678e2617d1e0f20683a84275558e5adf8f452/scripts/validate_job_status.sh | bash /dev/stdin odps
