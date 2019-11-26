@@ -1,6 +1,6 @@
 #!/bin/bash
 
-elasticdl train --image_base=sqlflow_models \
+elasticdl train --image_base=sqlflow/sqlflow_models \
 --model_def=dnnclassifier.DNNClassifier \
 --training_data=sqlflow_test_iris_train \
 --data_reader_params='columns=["sepal_length", "sepal_width", "petal_length", "petal_width", "class"]' \
