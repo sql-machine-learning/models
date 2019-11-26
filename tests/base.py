@@ -24,7 +24,7 @@ class BaseTestCases:
             self.setUp()
             model_pkg = sys.modules[self.model_class.__module__]
             self.model.compile(optimizer=model_pkg.optimizer(),
-                loss=model_pkg.loss_new,
+                loss=model_pkg.loss,
                 metrics=["accuracy"])
             self.model.fit(train_input_fn(self.features, self.label),
                 epochs=1,

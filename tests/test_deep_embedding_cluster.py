@@ -91,7 +91,7 @@ class TestDeepEmbeddingCluster(BaseTestCases.BaseTest):
         self.setUp()
         model_pkg = sys.modules[self.model_class.__module__]
         self.model.compile(optimizer=model_pkg.optimizer(),
-                           loss=model_pkg.loss_new)
+                           loss=model_pkg.loss)
         self.model.sqlflow_train_loop(train_input_fn(self.features, self.label))
         metric = evaluate(x=eval_input_fn(self.features, self.label), y=self.label, model=self.model)
         print(metric)

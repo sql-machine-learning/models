@@ -55,20 +55,12 @@ def optimizer():
     """Default optimizer name. Used in model.compile."""
     return 'adam'
 
-def loss(output, labels):
+def loss(labels, output):
     global _loss
     if _loss == "binary_crossentropy":
         return tf.reduce_mean(tf.keras.losses.binary_crossentropy(labels, output))
     elif _loss == "categorical_crossentropy":
         return tf.reduce_mean(tf.keras.losses.categorical_crossentropy(labels, output))
-
-# FIXME(typhoonzero): use the name loss once ElasticDL has updated.
-def loss_new(y_true, y_pred):
-    global _loss
-    if _loss == "binary_crossentropy":
-        return tf.reduce_mean(tf.keras.losses.binary_crossentropy(y_true, y_pred))
-    elif _loss == "categorical_crossentropy":
-        return tf.reduce_mean(tf.keras.losses.categorical_crossentropy(y_true, y_pred))
 
 def prepare_prediction_column(prediction):
     """Return the class label of highest probability."""
