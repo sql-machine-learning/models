@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-def dnnclassifier_functional_model(feature_columns, field_metas, learning_rate=0.01):
+def dnnclassifier_functional_model(feature_columns, field_metas, n_classes=2,  learning_rate=0.01):
     feature_layer_inputs = dict()
     for fmkey in field_metas:
         fm = field_metas[fmkey]
@@ -10,7 +10,7 @@ def dnnclassifier_functional_model(feature_columns, field_metas, learning_rate=0
 
     x = tf.keras.layers.Dense(128, activation='relu')(feature_layer_outputs)
     x = tf.keras.layers.Dense(64, activation='relu')(x)
-    pred = tf.keras.layers.Dense(1, activation='sigmoid')(x)
+    pred = tf.keras.layers.Dense(n_classes, activation='sigmoid')(x)
     return tf.keras.Model(inputs=[v for v in feature_layer_inputs.values()], outputs=pred)
 
 def loss(labels, output):
