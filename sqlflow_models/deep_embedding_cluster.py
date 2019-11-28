@@ -59,6 +59,8 @@ class DeepEmbeddingClusterModel(keras.Model):
         :param train_batch_size: Size of batch when run train.
         :param pretrain_epochs: Number of epochs when pre-train.
         :param pretrain_initializer: Initialize function for autoencoder layers.
+        :param pretrain_lr: learning rate to train the auto encoder.
+        :param train_lr: learning rate to train the cluster network.
         :param train_max_iters: Number of iterations when train.
         :param update_interval: Interval between updating target distribution.
         :param tol: tol.
