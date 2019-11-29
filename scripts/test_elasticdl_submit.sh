@@ -3,7 +3,7 @@
 elasticdl train --image_base=sqlflow/sqlflow_models \
 --model_def=dnnclassifier.DNNClassifier \
 --training_data=sqlflow_test_iris_train \
---data_reader_params='columns=["sepal_length", "sepal_width", "petal_length", "petal_width", "class"]' \
+--data_reader_params='columns=["sepal_length", "sepal_width", "petal_length", "petal_width", "class"];label_col="class"' \
 --envs="ODPS_PROJECT_NAME=gomaxcompute_driver_w7u,ODPS_ACCESS_ID=$ODPS_ACCESS_ID,ODPS_ACCESS_KEY=$ODPS_ACCESS_KEY" \
 --minibatch_size=32 \
 --num_epochs=2 \
