@@ -12,6 +12,7 @@ elasticdl train --image_base=sqlflow/sqlflow_models \
 --num_minibatches_per_task=2 \
 --image_pull_policy=Never \
 --num_workers=2 \
+--num_ps_pods=1 \
 --master_resource_request="cpu=200m,memory=128Mi" \
 --master_resource_limit="cpu=1,memory=2048Mi" \
 --worker_resource_request="cpu=200m,memory=128Mi" \

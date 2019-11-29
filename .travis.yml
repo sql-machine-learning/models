@@ -32,4 +32,4 @@ jobs:
       -e ODPS_ACCESS_ID=$MAXCOMPUTE_AK
       -e ODPS_ACCESS_KEY=$MAXCOMPUTE_SK
       sqlflow/sqlflow_models bash /workspace/scripts/test_elasticdl_submit.sh
-    - curl -s https://raw.githubusercontent.com/sql-machine-learning/elasticdl/62b255a918df5b6594c888b19aebbcc74bbce6e4/scripts/validate_job_status.sh | bash /dev/stdin odps
+    - curl -s https://raw.githubusercontent.com/sql-machine-learning/elasticdl/62b255a918df5b6594c888b19aebbcc74bbce6e4/scripts/validate_job_status.py | python - odps 1 2
