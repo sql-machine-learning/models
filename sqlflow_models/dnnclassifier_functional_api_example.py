@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-def dnnclassifier_functional_model(feature_columns, field_metas, n_classes=2,  learning_rate=0.01):
+def dnnclassifier_functional_model(feature_columns, field_metas, n_classes=2,  learning_rate=0.1):
     feature_layer_inputs = dict()
     for fmkey in field_metas:
         fm = field_metas[fmkey]
@@ -20,7 +20,7 @@ def epochs():
     return 1
 
 def optimizer(lr=0.1):
-    return tf.optimizers.SGD(lr)
+    return tf.keras.optimizers.Adagrad(lr=lr)
 
 def prepare_prediction_column(self, prediction):
     """Return the class label of highest probability."""
