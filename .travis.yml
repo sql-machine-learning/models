@@ -32,4 +32,8 @@ jobs:
       -e ODPS_ACCESS_ID=$MAXCOMPUTE_AK
       -e ODPS_ACCESS_KEY=$MAXCOMPUTE_SK
       sqlflow/sqlflow_models bash /workspace/scripts/test_elasticdl_submit.sh
-    - curl -s https://raw.githubusercontent.com/sql-machine-learning/elasticdl/c7f678e2617d1e0f20683a84275558e5adf8f452/scripts/validate_job_status.sh | bash /dev/stdin odps
+    - docker run --rm -it --net=host
+      -v $HOME/.kube:/root/.kube
+      -v /home/$USER/.minikube/:/home/$USER/.minikube/
+      sqlflow/sqlflow_models
+      bash -c "curl -s https://raw.githubusercontent.com/sql-machine-learning/elasticdl/62b255a918df5b6594c888b19aebbcc74bbce6e4/scripts/validate_job_status.py | python - odps 1 2"
