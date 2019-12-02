@@ -27,8 +27,8 @@ class BaseTestCases:
                 loss=model_pkg.loss,
                 metrics=["accuracy"])
             self.model.fit(train_input_fn(self.features, self.label),
-                epochs=1,
-                steps_per_epoch=100, verbose=0)
+                epochs=3,
+                steps_per_epoch=200, verbose=0)
             loss, acc = self.model.evaluate(eval_input_fn(self.features, self.label))
             print(loss, acc)
             assert(loss < 10)
