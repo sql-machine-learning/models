@@ -165,7 +165,8 @@ class DeepEmbeddingClusterModel(keras.Model):
             ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2)
         ]
         print('{} Training auto-encoder.'.format(datetime.now()))
-        self._autoencoder.fit_generator(generator=y, epochs=self._pretrain_epochs, callbacks=callbacks)
+        self._autoencoder.fit_generator(generator=y, epochs=self._pretrain_epochs, callbacks=callbacks,
+                                        verbose=2)
         # encoded_input
         # type : numpy.ndarray shape : (num_of_all_records,num_of_cluster) (70000,10) if mnist
         print('{} Calculating encoded_input.'.format(datetime.now()))
