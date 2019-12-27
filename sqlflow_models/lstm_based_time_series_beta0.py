@@ -8,6 +8,16 @@ class LSTMBasedTimeSeriesModel(tf.keras.Model):
                  n_in=7,
                  n_out=1
                  ):
+        """LSTMBasedTimeSeriesModel
+        :param feature_columns: All columns must be embedding of sequence column with same sequence_length.
+            type feature_columns: list[tf.feature_column.numeric_column].
+        :param stack_units: Units for LSTM layer.
+            type stack_units: vector of ints.
+        :param n_in: Size of time window.
+            type n_in: int.
+        :param n_out: Number of predicted labels.
+            type n_out: int.
+        """
         super(LSTMBasedTimeSeriesModel, self).__init__(name='LSTM_TS_Model')
         # Common
         self.feature_columns = feature_columns
