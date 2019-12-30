@@ -17,7 +17,7 @@ class DNNClassifier(tf.keras.Model):
             self.feature_layer = tf.keras.layers.DenseFeatures(feature_columns)
         self.hidden_layers = []
         for hidden_unit in hidden_units:
-            self.hidden_layers.append(tf.keras.layers.Dense(hidden_unit))
+            self.hidden_layers.append(tf.keras.layers.Dense(hidden_unit, activation='relu'))
         self.prediction_layer = tf.keras.layers.Dense(n_classes, activation='softmax')
 
     def call(self, inputs, training=True):
