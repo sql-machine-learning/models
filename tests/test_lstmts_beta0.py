@@ -1,3 +1,6 @@
+import sys
+sys.path.append("..")
+
 import sqlflow_models
 from tests.base import BaseTestCases
 

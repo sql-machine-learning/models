@@ -28,7 +28,9 @@ class DNNClassifier(tf.keras.Model):
             pred_act = 'softmax'
             _loss = 'categorical_crossentropy'
         self.prediction_layer = tf.keras.layers.Dense(self.n_classes, activation=pred_act)
-        
+        self.prediction_layer = tf.keras.layers.Dense(n_classes, activation='softmax')
+
+
     def call(self, inputs, training=True):
         if self.feature_layer is not None:
             x = self.feature_layer(inputs)
@@ -49,9 +51,6 @@ def loss(labels, output):
         return tf.reduce_mean(tf.keras.losses.binary_crossentropy(labels, output))
     elif _loss == "categorical_crossentropy":
         return tf.reduce_mean(tf.keras.losses.sparse_categorical_crossentropy(labels, output))
-
-    # return tf.reduce_mean(
-    #     tf.keras.losses.sparse_categorical_crossentropy(labels, output))
 
 def prepare_prediction_column(prediction):
     """Return the class label of highest probability."""
