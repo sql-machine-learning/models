@@ -27,7 +27,7 @@ class BaseTestCases:
                 loss=model_pkg.loss,
                 metrics=["accuracy"])
             self.history = self.model.fit(train_input_fn(self.features, self.label),
-                epochs=3,
+                epochs=10,
                 steps_per_epoch=200, 
                 verbose=1)
             self.historyloss =  self.history.history['loss']
