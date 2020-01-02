@@ -26,10 +26,14 @@ class BaseTestCases:
             self.model.compile(optimizer=model_pkg.optimizer(),
                 loss=model_pkg.loss,
                 metrics=["accuracy"])
-            self.model.fit(train_input_fn(self.features, self.label),
+            self.history = self.model.fit(train_input_fn(self.features, self.label),
                 epochs=3,
-                steps_per_epoch=200, verbose=0)
-            loss, acc = self.model.evaluate(eval_input_fn(self.features, self.label))
-            print(loss, acc)
-            assert(loss < 10)
-            assert(acc > 0.1)
+                steps_per_epoch=200, 
+                verbose=1)
+            self.historyloss =  self.history.history['loss']
+            loss_decline_rate = (self.historyloss[0] - self.historyloss[-1]) \
+                                / self.historyloss[0]
+            print('historyloss is {}, and the loss_decline_rate is {}'.\
+                format(self.historyloss, loss_decline_rate))
+            assert(loss_decline_rate > 0.3)
+
