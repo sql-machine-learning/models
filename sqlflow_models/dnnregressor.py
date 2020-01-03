@@ -34,6 +34,10 @@ def optimizer(learning_rate=0.1):
 def loss(labels, output):
     """Default loss function. Used in model.compile."""
     return tf.keras.losses.MSE(labels, output)
+
+def prepare_prediction_column(prediction):
+    """Return the prediction directly."""
+    return prediction[0]
         
 def eval_metrics_fn():
     return {
