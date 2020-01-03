@@ -33,8 +33,6 @@ class TestDNNClassifier(BaseTestCases.BaseTest):
             "col_2": {"name": "col_2", "shape": [1], "dtype": tf.float32},
             "col_3": {"name": "col_3", "shape": [1], "dtype": tf.float32},
         }
-        print(fieldmetas,'********', feature_columns)
-
         self.model = sqlflow_models.dnnclassifier_functional_model(feature_columns=feature_columns, field_metas=fieldmetas, n_classes=3)
         self.model_class = sqlflow_models.dnnclassifier_functional_model
 
