@@ -3,12 +3,15 @@ from tests.base import BaseTestCases
 
 import tensorflow as tf
 import numpy as np
+np.random.seed(20)
 import unittest
 
 
 class TestLSTMBasedTimeSeriesModel(BaseTestCases.BaseTest):
     def setUp(self):
-        x = np.array([int(x) for x in range(56)]).reshape(8, 7)
+        # We use sin data plus perturbation to simulate time series data
+        time_series_data = np.sin(np.arange(56)) + np.random.normal(0, 0.01, 56)
+        x = np.array(time_series_data).reshape(8, 7)
         y = np.array(np.arange(8).reshape(8, 1))
         self.features = {"col1": x}
         self.label = y

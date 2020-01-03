@@ -10,15 +10,26 @@ class DNNClassifier(tf.keras.Model):
         :param n_classes: List of hidden units per layer.
         :type n_classes: int.
         """
+        global _loss
         super(DNNClassifier, self).__init__()
         self.feature_layer = None
+        self.n_classes = n_classes
         if feature_columns is not None:
             # combines all the data as a dense tensor
             self.feature_layer = tf.keras.layers.DenseFeatures(feature_columns)
         self.hidden_layers = []
         for hidden_unit in hidden_units:
             self.hidden_layers.append(tf.keras.layers.Dense(hidden_unit, activation='relu'))
+        if self.n_classes == 2:
+            # special setup for binary classification
+            pred_act = 'sigmoid'
+            _loss = 'binary_crossentropy'
+        else:
+            pred_act = 'softmax'
+            _loss = 'categorical_crossentropy'
+        self.prediction_layer = tf.keras.layers.Dense(self.n_classes, activation=pred_act)
         self.prediction_layer = tf.keras.layers.Dense(n_classes, activation='softmax')
+
 
     def call(self, inputs, training=True):
         if self.feature_layer is not None:
@@ -35,8 +46,11 @@ def optimizer(learning_rate=0.1):
 
 def loss(labels, output):
     """Default loss function. Used in model.compile."""
-    return tf.reduce_mean(
-        tf.keras.losses.sparse_categorical_crossentropy(labels, output))
+    global _loss
+    if _loss == "binary_crossentropy":
+        return tf.reduce_mean(tf.keras.losses.binary_crossentropy(labels, output))
+    elif _loss == "categorical_crossentropy":
+        return tf.reduce_mean(tf.keras.losses.sparse_categorical_crossentropy(labels, output))
 
 def prepare_prediction_column(prediction):
     """Return the class label of highest probability."""
