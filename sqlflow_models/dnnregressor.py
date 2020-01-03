@@ -34,12 +34,15 @@ def optimizer(learning_rate=0.1):
 def loss(labels, output):
     """Default loss function. Used in model.compile."""
     return tf.keras.losses.MSE(labels, output)
-        
 
+def prepare_prediction_column(prediction):
+    """Return the prediction directly."""
+    return prediction[0]
+        
 def eval_metrics_fn():
     return {
         "mse": lambda labels, predictions: tf.reduce_mean(
             tf.pow(
-                tf.cast(pred, tf.float64) - tf.cast(labels, tf.float64), 2)
+                tf.cast(predictions, tf.float64) - tf.cast(labels, tf.float64), 2)
             )
     }
