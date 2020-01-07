@@ -12,7 +12,8 @@ python:
 service:
 - docker
 install:
-- pip install --upgrade pip
+- python -m pip install --upgrade pip --user
+- python -m pip install --upgrade tensorflow==2.0.0
 - python setup.py -q install
 script:
 - python setup.py -q test
