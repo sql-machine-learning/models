@@ -48,9 +48,13 @@ class LSTMBasedTimeSeriesModel(tf.keras.Model):
         x = self.dropout(x)
         return self.prediction_layer(x)
 
-def optimizer(learning_rate=0.1):
+def optimizer(learning_rate=0.001):
     """Default optimizer name. Used in model.compile."""
     return tf.keras.optimizers.Adam(lr=learning_rate)
+    
+def prepare_prediction_column(prediction):
+    """Return the prediction directly."""
+    return prediction[0]
 
 def loss(labels, output):
     return tf.reduce_mean(tf.keras.losses.MSE(labels, output))

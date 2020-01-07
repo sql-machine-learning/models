@@ -27,7 +27,7 @@ class DNNRegressor(tf.keras.Model):
             x = hidden_layer(x)
         return self.prediction_layer(x)
 
-def optimizer(learning_rate=0.1):
+def optimizer(learning_rate=0.001):
     """Default optimizer name. Used in model.compile."""
     return tf.keras.optimizers.Adagrad(lr=learning_rate)
 
@@ -38,7 +38,7 @@ def loss(labels, output):
 def prepare_prediction_column(prediction):
     """Return the prediction directly."""
     return prediction[0]
-        
+    
 def eval_metrics_fn():
     return {
         "mse": lambda labels, predictions: tf.reduce_mean(
