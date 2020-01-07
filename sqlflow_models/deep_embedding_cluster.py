@@ -11,10 +11,9 @@ from datetime import datetime
 import tensorflow as tf
 from tensorflow.python import keras
 from tensorflow.python.data import make_one_shot_iterator
-from tensorflow.python.feature_column.feature_column_v2 import DenseFeatures
 from tensorflow.python.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from tensorflow.python.keras.engine.base_layer import InputSpec
-from tensorflow.python.keras.layers import Dense, Layer
+from tensorflow.python.keras.layers import Dense, Layer, DenseFeatures
 from tensorflow.python.keras import backend
 import numpy as np
 from sklearn.cluster import KMeans
