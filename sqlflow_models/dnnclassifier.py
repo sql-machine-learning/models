@@ -38,7 +38,7 @@ class DNNClassifier(tf.keras.Model):
             x = hidden_layer(x)
         return self.prediction_layer(x)
 
-def optimizer(learning_rate=0.001):
+def optimizer(learning_rate=0.01):
     """Default optimizer name. Used in model.compile."""
     return tf.keras.optimizers.Adagrad(lr=learning_rate)
 
