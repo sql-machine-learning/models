@@ -38,7 +38,7 @@ def loss(labels, output):
 def prepare_prediction_column(prediction):
     """Return the prediction directly."""
     return prediction[0]
-    
+
 def eval_metrics_fn():
     return {
         "mse": lambda labels, predictions: tf.reduce_mean(
