@@ -28,8 +28,6 @@ class DNNClassifier(tf.keras.Model):
             pred_act = 'softmax'
             _loss = 'categorical_crossentropy'
         self.prediction_layer = tf.keras.layers.Dense(self.n_classes, activation=pred_act)
-        self.prediction_layer = tf.keras.layers.Dense(n_classes, activation='softmax')
-
 
     def call(self, inputs, training=True):
         if self.feature_layer is not None:
@@ -40,7 +38,7 @@ class DNNClassifier(tf.keras.Model):
             x = hidden_layer(x)
         return self.prediction_layer(x)
 
-def optimizer(learning_rate=0.1):
+def optimizer(learning_rate=0.001):
     """Default optimizer name. Used in model.compile."""
     return tf.keras.optimizers.Adagrad(lr=learning_rate)
 

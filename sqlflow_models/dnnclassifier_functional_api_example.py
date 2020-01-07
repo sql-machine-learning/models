@@ -2,7 +2,7 @@ import tensorflow as tf
 
 global _loss
 
-def dnnclassifier_functional_model(feature_columns, field_metas, n_classes=2,  learning_rate=0.1):
+def dnnclassifier_functional_model(feature_columns, field_metas, n_classes=2,  learning_rate=0.001):
     feature_layer_inputs = dict()
     for fmkey in field_metas:
         fm = field_metas[fmkey]
