@@ -12,6 +12,7 @@ python:
 service:
 - docker
 install:
+- pip install --upgrade pip
 - python setup.py -q install
 script:
 - python setup.py -q test
