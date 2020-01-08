@@ -24,10 +24,12 @@ class DNNClassifier(tf.keras.Model):
             # special setup for binary classification
             pred_act = 'sigmoid'
             _loss = 'binary_crossentropy'
+            n_out = 1
         else:
             pred_act = 'softmax'
             _loss = 'categorical_crossentropy'
-        self.prediction_layer = tf.keras.layers.Dense(self.n_classes, activation=pred_act)
+            n_out = self.n_classes
+        self.prediction_layer = tf.keras.layers.Dense(n_out, activation=pred_act)
 
     def call(self, inputs, training=True):
         if self.feature_layer is not None:
@@ -46,7 +48,7 @@ def loss(labels, output):
     """Default loss function. Used in model.compile."""
     global _loss
     if _loss == "binary_crossentropy":
-        return tf.reduce_mean(tf.keras.losses.binary_crossentropy(labels, output[:,1:]))
+        return tf.reduce_mean(tf.keras.losses.binary_crossentropy(labels, output))
     elif _loss == "categorical_crossentropy":
         return tf.reduce_mean(tf.keras.losses.sparse_categorical_crossentropy(labels, output))
 
