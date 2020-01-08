@@ -14,7 +14,6 @@ service:
 install:
 - python -m pip install --upgrade pip
 - python -m pip install --upgrade setuptools>=41.0.0
-- python -m pip install --upgrade tensorflow==2.0.0
 - python setup.py -q install
 script:
 - python setup.py -q test
