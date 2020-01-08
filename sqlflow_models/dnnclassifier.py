@@ -46,7 +46,7 @@ def loss(labels, output):
     """Default loss function. Used in model.compile."""
     global _loss
     if _loss == "binary_crossentropy":
-        return tf.reduce_mean(tf.keras.losses.binary_crossentropy(labels, output))
+        return tf.reduce_mean(tf.keras.losses.binary_crossentropy(labels, output[:,1:]))
     elif _loss == "categorical_crossentropy":
         return tf.reduce_mean(tf.keras.losses.sparse_categorical_crossentropy(labels, output))
 
