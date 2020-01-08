@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 class DNNRegressor(tf.keras.Model):
-    def __init__(self, feature_columns=None, hidden_units=[10,10]):
+    def __init__(self, feature_columns=None, hidden_units=[100,100]):
         """DNNRegressor
         :param feature_columns: feature columns.
         :type feature_columns: list[tf.feature_column].
