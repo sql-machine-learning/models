@@ -9,17 +9,15 @@ __create_time__ : 2019/09/03
 """
 from datetime import datetime
 import tensorflow as tf
-from tensorflow.python import keras
+from tensorflow import keras
 from tensorflow.python.data import make_one_shot_iterator
-from tensorflow.python.feature_column.feature_column_v2 import DenseFeatures
-from tensorflow.python.keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from tensorflow.python.keras.engine.base_layer import InputSpec
-from tensorflow.python.keras.layers import Dense, Layer
-from tensorflow.python.keras import backend
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from tensorflow.keras.layers import Dense, Layer, DenseFeatures, InputSpec
+from tensorflow.keras import backend
 import numpy as np
 from sklearn.cluster import KMeans
-from tensorflow.python.keras.losses import kld
-from tensorflow.python.keras.optimizers import SGD
+from tensorflow.keras.losses import kld
+from tensorflow.keras.optimizers import SGD
 import pandas as pd
 
 _train_lr = 0.01

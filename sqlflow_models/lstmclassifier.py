@@ -58,7 +58,7 @@ def optimizer():
 def loss(labels, output):
     global _loss
     if _loss == "binary_crossentropy":
-        return tf.reduce_mean(tf.keras.losses.binary_crossentropy(labels, output))
+        return tf.reduce_mean(tf.keras.losses.binary_crossentropy(labels, output[:,1:]))
     elif _loss == "categorical_crossentropy":
         return tf.reduce_mean(tf.keras.losses.categorical_crossentropy(labels, output))
 
