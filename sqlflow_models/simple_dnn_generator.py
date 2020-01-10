@@ -4,13 +4,8 @@ from __future__ import division
 from __future__ import print_function
 
 import functools
-
 import adanet
 import tensorflow as tf
-import absl
-import logging
-absl.logging.set_verbosity(absl.logging.ERROR)
-tf.get_logger().setLevel(logging.ERROR)
 
 _NUM_LAYERS_KEY = "num_layers"
 
