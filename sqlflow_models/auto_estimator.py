@@ -1,11 +1,21 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from collections import defaultdict
 
+import absl
+import logging
 import tensorflow as tf
+import warnings
+
+absl.logging.set_verbosity(absl.logging.ERROR)
+tf.get_logger().setLevel(logging.ERROR)
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+warnings.warn = lambda *args, **kargs:None
 import adanet
+
 from tensorflow import keras
 from tensorflow_estimator.python.estimator.canned import optimizers
 from sqlflow_models import simple_dnn_generator
+
 
 LEARN_MIXTURE_WEIGHTS=True
 RANDOM_SEED = 42
