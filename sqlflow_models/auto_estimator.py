@@ -23,7 +23,7 @@ RANDOM_SEED = 42
 class AutoClassifier(adanet.Estimator):
     def __init__(self, feature_columns, layer_size=50, optimizer='Adagrad', linear_optimizer='Ftrl',
                  model_dir=None, n_classes=2, activation_fn=tf.nn.relu, complexity_penalty=0.01,
-                 search_every_n_steps=1000, config=None):
+                 search_every_n_steps=1000, max_iterations=10, config=None):
         """AutoClassifier
         :param feature_columns: Feature columns.
         :type feature_columns: list[tf.feature_column].
@@ -37,6 +37,16 @@ class AutoClassifier(adanet.Estimator):
         :type linear_optimizer: str.
         :param model_dir: Directory to save or restore model checkpoints. 
         :type model_dir: str.
+        :param activation_fn: Activation function. 
+        :type activation_fn: function.
+        :param complexity_penalty: Regularization of the complexity of the network.
+        :type complexity_penalty: float.
+        :param search_every_n_steps: Search new architecture every n steps.
+        :type search_every_n_steps: int.
+        :param max_iterations: Max times of architecture searching.
+        :type max_iterations: int.
+        :param config: Estimator configuration.
+        :type config: dict.
         """
         if n_classes == 2:
             head = tf.estimator.BinaryClassHead()
@@ -53,26 +63,38 @@ class AutoClassifier(adanet.Estimator):
             optimizers=opts,
             learn_mixture_weights=LEARN_MIXTURE_WEIGHTS,
             seed=RANDOM_SEED)
-        super().__init__(head=head, model_dir=model_dir, adanet_lambda=complexity_penalty,
+        super().__init__(head=head,
+                         model_dir=model_dir,
+                         adanet_lambda=complexity_penalty,
                          subnetwork_generator=subnetwork_generator,
-                         max_iteration_steps=search_every_n_steps)
+                         max_iteration_steps=search_every_n_steps,
+                         max_iterations=max_iterations)
 
 class AutoRegressor(adanet.Estimator):
     def __init__(self, feature_columns, layer_size=50, optimizer='Adagrad', linear_optimizer='Ftrl',
                  model_dir=None, activation_fn=tf.nn.relu, complexity_penalty=0.01,
-                 search_every_n_steps=1000, config=None):
-        """AutoClassifier
+                 search_every_n_steps=1000, max_iterations=10, config=None):
+        """AutoRegressor
         :param feature_columns: Feature columns.
         :type feature_columns: list[tf.feature_column].
         :param layer_size: Number of hidden_units in each layers.
         :type layer_size: int.
-        :param n_classes: Number of label classes. Defaults to 2, namely binary classification.
         :param optimizer: Optimizer for the the neural multi-layer parts of the generated network.
         :type optimizer: str.
         :param linear_optimizer: Optimizer for the linear part of the generated network.
         :type linear_optimizer: str.
         :param model_dir: Directory to save or restore model checkpoints. 
         :type model_dir: str.
+        :param activation_fn: Activation function. 
+        :type activation_fn: function.
+        :param complexity_penalty: Regularization of the complexity of the network.
+        :type complexity_penalty: float.
+        :param search_every_n_steps: Search new architecture every n steps.
+        :type search_every_n_steps: int.
+        :param max_iterations: Max times of architecture searching.
+        :type max_iterations: int.
+        :param config: Estimator configuration.
+        :type config: dict.
         """
         head = tf.estimator.RegressionHead()
 
@@ -86,6 +108,9 @@ class AutoRegressor(adanet.Estimator):
             optimizers=opts,
             learn_mixture_weights=LEARN_MIXTURE_WEIGHTS,
             seed=RANDOM_SEED)
-        super().__init__(head=head, model_dir=model_dir, adanet_lambda=complexity_penalty,
+        super().__init__(head=head,
+                         model_dir=model_dir,
+                         adanet_lambda=complexity_penalty,
                          subnetwork_generator=subnetwork_generator,
-                         max_iteration_steps=search_every_n_steps)
+                         max_iteration_steps=search_every_n_steps,
+                         max_iterations=max_iterations)
