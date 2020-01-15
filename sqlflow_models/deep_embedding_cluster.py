@@ -130,7 +130,7 @@ class DeepEmbeddingClusterModel(keras.Model):
         print('{} Start pre_train.'.format(datetime.now()))
 
         # Concatenate input feature to meet requirement of keras.Model.fit()
-        def _concate_generate(dataset_element, label):
+        def _concate_generate(dataset_element):
             concate_y = tf.stack([dataset_element[feature.key] for feature in self._feature_columns], axis=1)
             return (dataset_element, concate_y)
 
@@ -197,7 +197,7 @@ class DeepEmbeddingClusterModel(keras.Model):
         # Using 'predict' to solve this problem here.
         # Preparation
         ite = make_one_shot_iterator(x)
-        features, _ = ite.get_next()
+        features = ite.get_next()
         self.predict(x=features)
 
         # Pre-train autoencoder to prepare weights of encoder layers.
@@ -212,7 +212,7 @@ class DeepEmbeddingClusterModel(keras.Model):
         # Train
         print('{} Start preparing training dataset.'.format(datetime.now()))
         all_records = {}
-        for (feature_dict, label) in x:  # type : dict and EagerTensor
+        for feature_dict in x:  # type : dict and EagerTensor
             for feature_name, feature_series in feature_dict.items():  # type : str and EagerTensor
                 if feature_name in all_records:
                     all_records[feature_name] = np.concatenate([all_records[feature_name], feature_series])

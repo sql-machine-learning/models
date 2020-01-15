@@ -12,8 +12,8 @@ from tensorflow.python import keras
 import sys
 
 
-def train_input_fn(features, labels, batch_size=32):
-    dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels))
+def train_input_fn(features, batch_size=32):
+    dataset = tf.data.Dataset.from_tensor_slices(dict(features))
     dataset = dataset.shuffle(1000).repeat(1).batch(batch_size)
     return dataset
 
@@ -92,7 +92,7 @@ class TestDeepEmbeddingCluster(BaseTestCases.BaseTest):
         model_pkg = sys.modules[self.model_class.__module__]
         self.model.compile(optimizer=model_pkg.optimizer(),
                            loss=model_pkg.loss)
-        self.model.sqlflow_train_loop(train_input_fn(self.features, self.label))
+        self.model.sqlflow_train_loop(train_input_fn(self.features))
         metric = evaluate(x=eval_input_fn(self.features, self.label), y=self.label, model=self.model)
         print(metric)
         assert (metric['acc'] > 0)
