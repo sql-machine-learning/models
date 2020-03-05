@@ -61,7 +61,7 @@ This guide will introduce how to contribute to SQLFlow models. You can find desi
         unittest.main()
     ```
 
-## Test Your SQLFlow Model
+## Test and Debug Your Model With SQLFlow
 
 If you have developed a new model, please perform the integration test with the SQLFlow gRPC server to make sure it works well with SQLFlow.
 
@@ -69,13 +69,7 @@ If you have developed a new model, please perform the integration test with the 
 
     ``` bash
     cd ./models
-    > docker run --rm -it -v $PWD:/models -p 8888:8888 sqlflow/sqlflow
-    ```
-
-1. Update `sqlflow_models` in the SQLFlow all-in-one Docker container:
-
-    ``` bash
-    > docker exec -it <container-id> pip install -U /models
+    > docker run --rm -it -v $PWD:/models -e PYTHONPATH=/models -p 8888:8888 sqlflow/sqlflow
     ```
 
 1. Open a web browser and go to `localhost:8888` to access the Jupyter Notebook. Using your custom model by modifying the `TRAIN` parameter of the SQLFlow extend SQL: `TRAIN sqlflow_models.MyDNNClassifier`:
@@ -88,6 +82,8 @@ COLUMN sepal_length, sepal_width, petal_length, petal_width
 LABEL class
 INTO sqlflow_models.my_dnn_model;
 ```
+
+1. When you need to update the model and test a gain, just modify the mode Python file on your host then run the SQL statement in the notebook one more time.
 
 ## Publish your model in the SQLFlow all-in-one Docker image
 
