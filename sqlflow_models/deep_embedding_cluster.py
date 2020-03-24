@@ -239,7 +239,12 @@ class DeepEmbeddingClusterModel(keras.Model):
                     print('Early stopping since delta_table {} has reached tol {}'.format(delta_percentage, self._tol))
                     break
             idx = index_array[index * self._train_batch_size: min((index + 1) * self._train_batch_size, record_num)]
-            loss = self.train_on_batch(x=list(all_records_ndarray[idx].T), y=p[idx])
+            batch_input = all_records_ndarray[idx]
+            batch_input_dict = {}
+            for i, feature in enumerate(self._feature_columns):
+                batch_input_dict[feature.name] = pd.Series(batch_input[:, i])
+
+            loss = self.train_on_batch(x=batch_input_dict, y=p[idx])
             if ite % 100 == 0:
                 print('{} Training at iter:{} -> loss:{}.'.format(datetime.now(), ite, loss))
             index = index + 1 if (index + 1) * self._train_batch_size <= record_num else 0  # Update index
