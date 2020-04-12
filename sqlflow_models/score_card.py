@@ -10,13 +10,24 @@ import pandas as pd
 import scipy.stats.stats as stats
 import sklearn
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_auc_score, auc
 import pickle
 
+
 def optimizer():
+    # SGD is just a placeholder to avoid panic on SQLFLow traning
     return SGD(lr=0.1, momentum=0.9)
+
 
 def loss():
     return None
+
+
+def prepare_prediction_column(prediction):
+    """Return the class label of highest probability."""
+    return prediction.argmax(axis=-1)
+
 
 class MyScoreCard(keras.Model):
 
@@ -25,15 +36,14 @@ class MyScoreCard(keras.Model):
 
         self._factor = 20/np.log(2)
         self._offset = 600 - 20*np.log(20) / np.log(2)
-        self._lr = LogisticRegression()
         self._is_first_predict_batch = False
         self._bins = dict()
 
     def call(self):
         pass
         
-    def _pr_bin(self, y, x, n=10):
-        # population frequency
+    def _pf_bin(self, y, x, n=10):
+        # population frequency bucket
         bad_num = y.sum()
         good_num = y.count() - y.sum()
         d1 = pd.DataFrame({'x': x,'y': y,'bucket': pd.qcut(x, n, duplicates='drop')})
@@ -68,30 +78,43 @@ class MyScoreCard(keras.Model):
             if label is not None:
                 dy['label'] = label.numpy()[0][0]
                 y_df = y_df.append(dy, ignore_index=True)
-        return x_df, y_df
+        
+        if y_df.empty:
+            return x_df, None
+        return x_df, y_df['label']
 
     def _replace_woe(self, x, cut, woe):
-        #return pd.cut(x, cut, labels=pd.Categorical(woe))
-        return pd.cut(x, cut, labels=woe)
+        return pd.cut(x, cut, labels=pd.Categorical(woe))
 
-    def sqlflow_train_loop(self, x, epochs=1, verbose=0):
-        ite = make_one_shot_iterator(x)
+    def _woe_encoder(self, x, y):
+        x_train_dict = {}
+        for col in x.columns:
+            dfx, cut, woe, iv = self._pf_bin(y, x[col])
+            self._bins[col] = (dfx, cut, woe, iv)
+            # replace by woe encoder
+            x_train_dict[col] = self._replace_woe(x[col], cut, woe)
+
+        return pd.DataFrame.from_dict(x_train_dict)
+
+    def sqlflow_train_loop(self, dataset, epochs=1, verbose=0):
+        ite = make_one_shot_iterator(dataset)
         ite.get_next()
 
-        x_df, y_df = self._to_dataframe(x)
+        x_df, y_df = self._to_dataframe(dataset)
+        x = self._woe_encoder(x_df, y_df)
+        self._lr = LogisticRegression()
 
-        x_train_dict = {}
-        for col in x_df.columns:
-            dfx, cut, woe, iv = self._pr_bin(y_df['label'], x_df[col])
-            self._bins[col] = (dfx, cut, woe, iv)
-          
-            x_replaced_woe = self._replace_woe(x_df[col], cut, woe)
-            x_train_dict[col] = x_replaced_woe
+        x_train, x_test, y_train, y_test = train_test_split(x, y_df)
+        self._lr.fit(x_train, y_train)
 
-        x_train = pd.DataFrame.from_dict(x_train_dict)
-        self._lr.fit(x_train, y_df['label'])
+        prob = self._lr.predict_proba(x_test)[:, 1]
+        auc_score = roc_auc_score(y_test, prob)
+        print("AUC: {}\n".format(auc_score))
+
+
+        # show scores
+        print("The scores for each bins:")
         coe = self._lr.coef_
-
         for i, col_name in enumerate(x_df.columns):
             bin_cols = self._bins[col_name][0].index.to_list()
             for j, w in enumerate(self._bins[col_name][2]):
@@ -107,6 +130,7 @@ class MyScoreCard(keras.Model):
 
     def predict_on_batch(self, features):
         if not self._is_first_predict_batch:
+            # SQLFLow would call this function once to warm up
             self._is_first_predict_batch = True
             return None
         x_df, _ = self._to_dataframe([(features, None)])
@@ -114,9 +138,4 @@ class MyScoreCard(keras.Model):
         for col in x_df.columns:
             bin = self._bins[col]
             x_train_dict[col] = self._replace_woe(x_df[col], bin[1], bin[2])
-        r = self._lr.predict_proba(pd.DataFrame.from_dict(x_train_dict))
-        return r
-
-def prepare_prediction_column(prediction):
-    """Return the class label of highest probability."""
-    return prediction.argmax(axis=-1)
+        return self._lr.predict_proba(pd.DataFrame.from_dict(x_train_dict))
