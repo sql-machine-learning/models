@@ -133,4 +133,5 @@ setup(
     cmdclass={
         'upload': UploadCommand,
     },
+    zip_safe=False,
 )
