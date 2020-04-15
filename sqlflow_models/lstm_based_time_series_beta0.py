@@ -6,7 +6,8 @@ class LSTMBasedTimeSeriesModel(tf.keras.Model):
                  feature_columns=None,
                  stack_units=[500, 500],
                  n_in=7,
-                 n_out=1
+                 n_out=1,
+                 n_features=1
                  ):
         """LSTMBasedTimeSeriesModel
         :param feature_columns: All columns must be embedding of sequence column with same sequence_length.
@@ -24,6 +25,7 @@ class LSTMBasedTimeSeriesModel(tf.keras.Model):
         self.loss = loss
         self.n_out = n_out
         self.n_in = n_in
+        self.n_features = n_features
         self.stack_units = stack_units
         # combines all the data as a dense tensor
         self.feature_layer = None
@@ -31,8 +33,8 @@ class LSTMBasedTimeSeriesModel(tf.keras.Model):
             self.feature_layer = tf.keras.layers.DenseFeatures(feature_columns)
         self.stack_layers = []
         for unit in self.stack_units[:-1]:
-            self.stack_layers.append(tf.keras.layers.LSTM(unit, input_shape=(self.n_in, 1), return_sequences=True))
-        self.lstm = tf.keras.layers.LSTM(self.stack_units[-1], input_shape=(self.n_in, 1))
+            self.stack_layers.append(tf.keras.layers.LSTM(unit, input_shape=(self.n_in, self.n_features), return_sequences=True))
+        self.lstm = tf.keras.layers.LSTM(self.stack_units[-1], input_shape=(self.n_in, self.n_features))
         self.dropout = tf.keras.layers.Dropout(0.2)
         self.prediction_layer = tf.keras.layers.Dense(self.n_out)
 
@@ -41,7 +43,7 @@ class LSTMBasedTimeSeriesModel(tf.keras.Model):
             x = self.feature_layer(inputs)
         else:
             x = inputs
-        x = tf.reshape(x, (-1, self.n_in,1))
+        x = tf.reshape(x, (-1, self.n_in, self.n_features))
         for i in range(len(self.stack_units) - 1):
             x = self.stack_layers[i](x)
         x = self.lstm(x)
