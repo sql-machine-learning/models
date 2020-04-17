@@ -18,6 +18,8 @@ class LSTMBasedTimeSeriesModel(tf.keras.Model):
             type n_in: int.
         :param n_out: Number of predicted labels.
             type n_out: int.
+        :param n_features: number of features in every time window.
+            type n_features: int
         """
         super(LSTMBasedTimeSeriesModel, self).__init__(name='LSTM_TS_Model')
         # Common
