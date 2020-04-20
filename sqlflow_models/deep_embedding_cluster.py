@@ -82,7 +82,6 @@ class DeepEmbeddingClusterModel(keras.Model):
         self._n_clusters = n_clusters
         _default_loss = loss
         self._train_max_iters = train_max_iters
-        # self._train_batch_size = train_batch_size
         self._update_interval = update_interval
         self._current_interval = 0
         self._train_use_tol = train_use_tol
@@ -92,7 +91,6 @@ class DeepEmbeddingClusterModel(keras.Model):
         self._run_pretrain = run_pretrain
         self._existed_pretrain_model = existed_pretrain_model
         self._pretrain_activation_func = pretrain_activation_func
-        # self._pretrain_batch_size = pretrain_batch_size
         self._pretrain_dims = pretrain_dims if pretrain_dims is not None else [100, 100, 10]
         self._pretrain_epochs = pretrain_epochs
         self._pretrain_initializer = pretrain_initializer
@@ -226,10 +224,15 @@ class DeepEmbeddingClusterModel(keras.Model):
         features = ite.get_next()
         self.predict(x=features)
 
+        # Get train.batch_size from sqlflow
+        for feature_name, feature_series in features.items():
+            self._train_batch_size = feature_series.shape[0]
+            break
+
         # Pre-train autoencoder to prepare weights of encoder layers.
         self.pre_train(x)
 
-        # initialize centroids for clustering.
+        # Initialize centroids for clustering.
         self.init_centroids()
 
         # Setting cluster layer.
@@ -247,14 +250,18 @@ class DeepEmbeddingClusterModel(keras.Model):
 
         all_records_df = pd.DataFrame.from_dict(all_records)
         all_records_ndarray = all_records_df.values
+        record_num, feature_num = all_records_df.shape
         print('{} Done preparing training dataset.'.format(datetime.now()))
 
-        loss, p = 0., None
-        if self._train_use_tol:
-            for ite in range(self._train_max_iters):
-                if ite % self._update_interval == 0:
-                    q = self.predict(all_records)  # numpy.ndarray shape(record_num,n_clusters)
-                    p = self.target_distribution(q)  # update the auxiliary target distribution p
+        index_array = np.arange(record_num)
+        index, loss, p = 0, 0., None
+        
+        for ite in range(self._train_max_iters):
+            if ite % self._update_interval == 0:
+                q = self.predict(all_records)  # numpy.ndarray shape(record_num,n_clusters)
+                p = self.target_distribution(q)  # update the auxiliary target distribution p
+                
+                if self._train_use_tol:
                     y_pred = q.argmax(1)
                     # delta_percentage means the percentage of changed predictions in this train stage.
                     delta_percentage = np.sum(y_pred != self.y_pred_last).astype(np.float32) / y_pred.shape[0]
@@ -263,19 +270,11 @@ class DeepEmbeddingClusterModel(keras.Model):
                     if ite > 0 and delta_percentage < self._tol:
                         print('Early stopping since delta_table {} has reached tol {}'.format(delta_percentage, self._tol))
                         break
-                loss = self.train_on_batch(x=list(all_records_ndarray.T), y=p)
-                if ite % 100 == 0:
-                    print('{} Training at iter:{} -> loss:{}.'.format(datetime.now(), ite, loss))
-        else:
-            for ite in range(self._train_max_iters):
-                if ite % self._update_interval == 0:
-                    q = self.predict(all_records)  # numpy.ndarray shape(record_num,n_clusters)
-                    p = self.target_distribution(q)  # update the auxiliary target distribution p
-                    
-                loss = self.train_on_batch(x=list(all_records_ndarray.T), y=p)
-                if ite % 100 == 0:
-                    print('{} Training at iter:{} -> loss:{}.'.format(datetime.now(), ite, loss))
-
+            idx = index_array[index * self._train_batch_size: min((index + 1) * self._train_batch_size, record_num)]
+            loss = self.train_on_batch(x=list(all_records_ndarray[idx].T), y=p[idx])
+            if ite % 100 == 0:
+                print('{} Training at iter:{} -> loss:{}.'.format(datetime.now(), ite, loss))
+            index = index + 1 if (index + 1) * self._train_batch_size <= record_num else 0  # Update index
 
     def display_model_info(self, verbose=0):
         if verbose >= 0:
