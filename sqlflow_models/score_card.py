@@ -29,10 +29,10 @@ def prepare_prediction_column(prediction):
     return prediction.argmax(axis=-1)
 
 
-class MyScoreCard(keras.Model):
+class ScoreCard(keras.Model):
 
     def __init__(self, feature_columns=None):
-        super(MyScoreCard, self).__init__(name='ScoreCard')
+        super(ScoreCard, self).__init__(name='ScoreCard')
 
         self._factor = 20/np.log(2)
         self._offset = 600 - 20*np.log(20) / np.log(2)
