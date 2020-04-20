@@ -267,7 +267,7 @@ class DeepEmbeddingClusterModel(keras.Model):
                 if ite % 100 == 0:
                     print('{} Training at iter:{} -> loss:{}.'.format(datetime.now(), ite, loss))
         else:
-        	for ite in range(self._train_max_iters):
+            for ite in range(self._train_max_iters):
                 if ite % self._update_interval == 0:
                     q = self.predict(all_records)  # numpy.ndarray shape(record_num,n_clusters)
                     p = self.target_distribution(q)  # update the auxiliary target distribution p

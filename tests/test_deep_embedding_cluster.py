@@ -17,7 +17,6 @@ def train_input_fn(features, batch_size=32):
     dataset = dataset.shuffle(1000).repeat(1).batch(batch_size)
     return dataset
 
-
 ari = adjusted_rand_score
 nmi = normalized_mutual_info_score
 
