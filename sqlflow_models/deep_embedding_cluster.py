@@ -18,6 +18,7 @@ import numpy as np
 from sklearn.cluster import KMeans
 from tensorflow.keras.losses import kld
 from tensorflow.keras.optimizers import SGD
+import tensorflow_datasets as tfds
 import pandas as pd
 
 _train_lr = 0.01
@@ -31,7 +32,7 @@ class DeepEmbeddingClusterModel(keras.Model):
                  kmeans_init=20,
                  run_pretrain=True,
                  existed_pretrain_model=None,
-                 pretrain_dims=None,
+                 pretrain_dims=[100, 100, 10],
                  pretrain_activation_func='relu',
                  pretrain_use_callbacks=False,
                  pretrain_cbearlystop_patience=50,
@@ -91,7 +92,7 @@ class DeepEmbeddingClusterModel(keras.Model):
         self._run_pretrain = run_pretrain
         self._existed_pretrain_model = existed_pretrain_model
         self._pretrain_activation_func = pretrain_activation_func
-        self._pretrain_dims = pretrain_dims if pretrain_dims is not None else [100, 100, 10]
+        self._pretrain_dims = pretrain_dims
         self._pretrain_epochs = pretrain_epochs
         self._pretrain_initializer = pretrain_initializer
         self._pretrain_lr = pretrain_lr
@@ -143,14 +144,30 @@ class DeepEmbeddingClusterModel(keras.Model):
         """
         print('{} Start pre_train.'.format(datetime.now()))
 
+        print('{} Start preparing training dataset to save into memory.'.format(datetime.now()))
         # Concatenate input feature to meet requirement of keras.Model.fit()
         def _concate_generate(dataset_element):
             concate_y = tf.stack([dataset_element[feature.key] for feature in self._feature_columns], axis=1)
             return (dataset_element, concate_y)
 
-        y = x.map(map_func=_concate_generate)
+        y = x.cache().map(map_func=_concate_generate)
         y.prefetch(1)
-        print('{} Finished dataset transform.'.format(datetime.now()))
+        
+        self.input_x = dict()
+        self.input_y = None
+        for np_sample in tfds.as_numpy(y):
+            sample_dict = np_sample[0]
+            label = np_sample[1]
+            if self.input_y is None:
+                self.input_y = label
+            else:
+                self.input_y = np.concatenate([self.input_y, label])
+            if len(self.input_x) == 0:
+                self.input_x = sample_dict
+            else:
+                for k in self.input_x:
+                    self.input_x[k] = np.concatenate([self.input_x[k], sample_dict[k]])
+        print('{} Done preparing training dataset.'.format(datetime.now()))
 
         # Layers - decoder
         self.decoder_layers = []
@@ -177,18 +194,15 @@ class DeepEmbeddingClusterModel(keras.Model):
         if self._pretrain_use_callbacks:
             callbacks = [
                 EarlyStopping(monitor='loss', 
-                              patience=self._pretrain_cbearlystop_patience, 
-                              min_delta=self._pretrain_cbearlystop_mindelta),
+                    patience=self._pretrain_cbearlystop_patience, min_delta=self._pretrain_cbearlystop_mindelta),
                 ReduceLROnPlateau(monitor='loss', 
-                                  factor=self._pretrain_cbreduce_factor, 
-                                  patience=self._pretrain_cbreduce_patience)
+                    factor=self._pretrain_cbreduce_factor, patience=self._pretrain_cbreduce_patience)
             ]
-            self._autoencoder.fit_generator(generator=y, epochs=self._pretrain_epochs,
-                                            callbacks=callbacks,
-                                            verbose=2)
+            self._autoencoder.fit(self.input_x, self.input_y, 
+                epochs=self._pretrain_epochs, callbacks=callbacks, verbose=1)
         else:
-            self._autoencoder.fit_generator(generator=y, epochs=self._pretrain_epochs,
-                                            verbose=2)
+            self._autoencoder.fit(self.input_x, self.input_y, 
+                epochs=self._pretrain_epochs, verbose=1)
         # encoded_input
         # type : numpy.ndarray shape : (num_of_all_records,num_of_cluster) (70000,10) if mnist
         print('{} Calculating encoded_input.'.format(datetime.now()))
@@ -239,18 +253,7 @@ class DeepEmbeddingClusterModel(keras.Model):
         self.get_layer(name='clustering').set_weights([self.kmeans.cluster_centers_])
 
         # Train
-        print('{} Start preparing training dataset.'.format(datetime.now()))
-        all_records = {}
-        for feature_dict in x:  # type : dict and EagerTensor
-            for feature_name, feature_series in feature_dict.items():  # type : str and EagerTensor
-                if feature_name in all_records:
-                    all_records[feature_name] = np.concatenate([all_records[feature_name], feature_series])
-                else:
-                    all_records[feature_name] = feature_series
-
-        all_records_df = pd.DataFrame.from_dict(all_records)
-        all_records_ndarray = all_records_df.values
-        record_num, feature_num = all_records_df.shape
+        record_num, feature_num = self.input_y.shape
         print('{} Done preparing training dataset.'.format(datetime.now()))
 
         index_array = np.arange(record_num)
@@ -258,7 +261,7 @@ class DeepEmbeddingClusterModel(keras.Model):
         
         for ite in range(self._train_max_iters):
             if ite % self._update_interval == 0:
-                q = self.predict(all_records)  # numpy.ndarray shape(record_num,n_clusters)
+                q = self.predict(self.input_x)  # numpy.ndarray shape(record_num,n_clusters)
                 p = self.target_distribution(q)  # update the auxiliary target distribution p
                 
                 if self._train_use_tol:
@@ -271,7 +274,7 @@ class DeepEmbeddingClusterModel(keras.Model):
                         print('Early stopping since delta_table {} has reached tol {}'.format(delta_percentage, self._tol))
                         break
             idx = index_array[index * self._train_batch_size: min((index + 1) * self._train_batch_size, record_num)]
-            loss = self.train_on_batch(x=list(all_records_ndarray[idx].T), y=p[idx])
+            loss = self.train_on_batch(x=list(self.input_y[idx].T), y=p[idx])
             if ite % 100 == 0:
                 print('{} Training at iter:{} -> loss:{}.'.format(datetime.now(), ite, loss))
             index = index + 1 if (index + 1) * self._train_batch_size <= record_num else 0  # Update index
