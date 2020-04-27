@@ -301,6 +301,7 @@ class DeepEmbeddingClusterModel(keras.Model):
             print(self.clustering_layer.name + ' : ')
             print(self.clustering_layer.get_weights())
 
+
 def optimizer():
     global _train_lr
     return SGD(lr=_train_lr, momentum=0.9)
