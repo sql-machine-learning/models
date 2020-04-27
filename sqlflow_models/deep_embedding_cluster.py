@@ -39,7 +39,7 @@ class DeepEmbeddingClusterModel(keras.Model):
                  pretrain_cbearlystop_mindelta=0.0001,
                  pretrain_cbreduce_patience=10,
                  pretrain_cbreduce_factor=0.1,
-                 pretrain_epochs=50,
+                 pretrain_epochs=30,
                  pretrain_initializer='glorot_uniform',
                  pretrain_lr=1,
                  train_lr=0.01,
