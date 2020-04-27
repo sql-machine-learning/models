@@ -17,7 +17,6 @@ def train_input_fn(features, batch_size=32):
     dataset = dataset.shuffle(1000).repeat(1).batch(batch_size)
     return dataset
 
-
 ari = adjusted_rand_score
 nmi = normalized_mutual_info_score
 
@@ -77,13 +76,17 @@ class TestDeepEmbeddingCluster(BaseTestCases.BaseTest):
                                                               existed_pretrain_model=None,
                                                               pretrain_dims=pretrain_dims,
                                                               pretrain_activation_func='relu',
-                                                              pretrain_batch_size=256,
-                                                              train_batch_size=256,
-                                                              pretrain_epochs=10,
+                                                              pretrain_use_callbacks=True,
+                                                              pretrain_cbearlystop_patience=10,
+                                                              pretrain_cbearlystop_mindelta=0.0001,
+                                                              pretrain_cbreduce_patience=5,
+                                                              pretrain_cbreduce_factor=0.2,
+                                                              pretrain_epochs=20,
                                                               pretrain_initializer='glorot_uniform',
-                                                              train_max_iters=100,
-                                                              update_interval=20,
-                                                              tol=0.001,
+                                                              train_max_iters=500,
+                                                              update_interval=100,
+                                                              train_use_tol=True,
+                                                              tol=0.0001,
                                                               loss=kld)
         self.model_class = sqlflow_models.DeepEmbeddingClusterModel
 
