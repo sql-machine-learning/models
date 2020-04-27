@@ -168,6 +168,7 @@ class DeepEmbeddingClusterModel(keras.Model):
                 for k in self.input_x:
                     self.input_x[k] = np.concatenate([self.input_x[k], sample_dict[k]])
         print('{} Done preparing training dataset.'.format(datetime.now()))
+        print("##### self.input_y.shape", self.input_y.shape)
 
         # Layers - decoder
         self.decoder_layers = []
@@ -253,7 +254,13 @@ class DeepEmbeddingClusterModel(keras.Model):
         self.get_layer(name='clustering').set_weights([self.kmeans.cluster_centers_])
 
         # Train
-        record_num, feature_num = self.input_y.shape
+        # flatten y to shape (num_samples, flattened_features)
+        record_num = self.input_y.shape[0]
+        feature_dims = self.input_y.shape[1:]
+        feature_dim_total = 1
+        for d in feature_dims:
+            feature_dim_total = feature_dim_total * d
+        y_reshaped = self.input_y.reshape([record_num, feature_dim_total])
         print('{} Done preparing training dataset.'.format(datetime.now()))
 
         index_array = np.arange(record_num)
@@ -274,7 +281,8 @@ class DeepEmbeddingClusterModel(keras.Model):
                         print('Early stopping since delta_table {} has reached tol {}'.format(delta_percentage, self._tol))
                         break
             idx = index_array[index * self._train_batch_size: min((index + 1) * self._train_batch_size, record_num)]
-            loss = self.train_on_batch(x=list(self.input_y[idx].T), y=p[idx])
+
+            loss = self.train_on_batch(x=list(y_reshaped[idx].T), y=p[idx])
             if ite % 100 == 0:
                 print('{} Training at iter:{} -> loss:{}.'.format(datetime.now(), ite, loss))
             index = index + 1 if (index + 1) * self._train_batch_size <= record_num else 0  # Update index
