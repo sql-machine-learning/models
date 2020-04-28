@@ -234,9 +234,8 @@ class DeepEmbeddingClusterModel(keras.Model):
         # https://github.com/tensorflow/tensorflow/issues/28111
         # Using 'predict' to solve this problem here.
         # Preparation
-        ite = make_one_shot_iterator(x)
-        features = ite.get_next()
-        self.predict(x=features)
+        for features in x.take(1):
+            self.predict(x=features)
 
         # Get train.batch_size from sqlflow
         for feature_name, feature_series in features.items():
@@ -300,6 +299,7 @@ class DeepEmbeddingClusterModel(keras.Model):
             # Cluster
             print(self.clustering_layer.name + ' : ')
             print(self.clustering_layer.get_weights())
+
 
 def optimizer():
     global _train_lr
