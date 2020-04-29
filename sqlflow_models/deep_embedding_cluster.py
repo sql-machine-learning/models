@@ -168,7 +168,6 @@ class DeepEmbeddingClusterModel(keras.Model):
                 for k in self.input_x:
                     self.input_x[k] = np.concatenate([self.input_x[k], sample_dict[k]])
         print('{} Done preparing training dataset.'.format(datetime.now()))
-        print("##### self.input_y.shape", self.input_y.shape)
 
         # Layers - decoder
         self.decoder_layers = []
