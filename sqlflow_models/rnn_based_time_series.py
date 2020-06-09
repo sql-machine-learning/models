@@ -20,7 +20,7 @@ class RNNBasedTimeSeriesModel(tf.keras.Model):
             type n_out: int.
         :param n_features: number of features in every time window.
             type n_features: int.
-        :param model_type: Specific RNN model to be used.
+        :param model_type: Specific RNN model to be used, which can be chose from: ('rnn', 'lstm' and 'gru').
             type model_type: string.
         """
         super(RNNBasedTimeSeriesModel, self).__init__(name='RNN_TS_Model')

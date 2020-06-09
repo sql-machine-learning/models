@@ -11,7 +11,7 @@ class StackedRNNClassifier(tf.keras.Model):
         :type stack_units: vector of ints.
         :param n_classes: Target number of classes.
         :type n_classes: int.
-        :param model_type: Specific RNN model to be used.
+        :param model_type: Specific RNN model to be used, which can be chose from: ('rnn', 'lstm' and 'gru').
         :type model_type: string.
         :param bidirectional: Whether to use bidirectional or not.
         :type bidirectional: bool.
