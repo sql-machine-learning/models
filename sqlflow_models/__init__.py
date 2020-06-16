@@ -6,3 +6,4 @@ from .deep_embedding_cluster import DeepEmbeddingClusterModel
 from .dnnclassifier_functional_api_example import dnnclassifier_functional_model
 from .rnn_based_time_series import RNNBasedTimeSeriesModel
 from .auto_estimator import AutoClassifier, AutoRegressor
+from .arima_with_stl_decomposition import ARIMAWithSTLDecomposition
