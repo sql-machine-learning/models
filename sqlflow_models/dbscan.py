@@ -34,7 +34,6 @@ class DBSCAN:
         '''
         X = np.array(X)
         Y = np.array(Y) if Y else X
-
         dist_mat = np.dot(X, Y.T)
 
         X_squared = np.sum(np.square(X), axis=1).reshape((dist_mat.shape[0], -1))
