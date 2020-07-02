@@ -8,8 +8,9 @@ __file_name__ : dbscan.py
 __create_time__ : 2020/07/01
 """
 import numpy as np
+import tensorflow as tf
 
-class DBSCAN:
+class DBSCAN(tf.keras.Model):
     def __init__(self, eps: float = 0.5, min_samples: int = 5):
         '''
         :param eps: Neighborhood distance
