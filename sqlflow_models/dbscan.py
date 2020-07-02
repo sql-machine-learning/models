@@ -24,72 +24,75 @@ class DBSCAN:
 
     def euclidean_distances(self, X, Y=None, Y_norm_squared=None, X_norm_squared=None):
         '''
-        将数据的每行看做样本，计算两矩阵样本之间的欧氏距离
+        Each row of data is regarded as a sample,
+        and the Euclidean distance between two matrix samples is calculated
         :param X: matrix one
         :param Y: matrix two
         :param Y_norm_squared:
         :param X_norm_squared:
-        :return: pairwise距离矩阵
+        :return: pairwise  Distance matrix
         '''
         X = np.array(X)
-        Y = np.array(Y) if Y else X  # 若未指定Y则令其为X
+        Y = np.array(Y) if Y else X
 
         dist_mat = np.dot(X, Y.T)
 
         X_squared = np.sum(np.square(X), axis=1).reshape((dist_mat.shape[0], -1))
         Y_squared = np.sum(np.square(Y), axis=1).reshape((-1, dist_mat.shape[1]))
         squared_dist = X_squared - 2 * dist_mat + Y_squared
-        squared_dist[squared_dist < 0] = 0  # 在某些数据下可能出现负数，需要做截断处理
+        squared_dist[squared_dist < 0] = 0
+        # Negative numbers may appear under some data, so it needs to be truncated
 
         return np.sqrt(squared_dist)
 
     def fit(self, X):
         dist_mat = self.euclidean_distances(X)
-        dens_arr = list()  # 密度数组
+        dens_arr = list()  # Density array
         for row in dist_mat:
-            dens = np.sum(row <= self.eps)  # 计算密度
+            dens = np.sum(row <= self.eps)  # Density calculate
             dens_arr.append(dens)
         dens_arr = np.array(dens_arr)
-        visited_arr = [False for _ in range(len(X))]  # 访问标记数组
-        self.labels_ = [-1 for _ in range(len(X))]  # 所属类别
-        k = -1  # 第几个类别，初始默认所有样本点均为噪声点
+        visited_arr = [False for _ in range(len(X))]  # Access tag array
+        self.labels_ = [-1 for _ in range(len(X))]  # Category
+        k = -1  # all sample points are noise points by default
 
-        # 遍历样本点
+        # Traversing sample points
         for idx in range(len(X)):
-            if visited_arr[idx]:  # 已被访问则跳过
+            if visited_arr[idx]:  # If it has been accessed, it will be skipped
                 continue
 
             visited_arr[idx] = True
 
-            if dens_arr[idx] == 1 or dens_arr[idx] < self.min_samples:  # 噪声样本或边界样本
+            if dens_arr[idx] == 1 or dens_arr[idx] < self.min_samples:  # Noise sample or boundary
                 continue
 
-            else:  # 核心对象
-                # 访问队列，会在循环中对其进行修改
+            else:  # core object
+                # Access the queue, which is modified in the loop
                 cores_q = [i for i in range(
                     len(X)) if dist_mat[i, idx] <= self.eps and dens_arr[i] >= self.min_samples]
-                k += 1  # 新建类别
-                self.labels_[idx] = k  # 为当前核心对象赋予类别
+                k += 1  # New category
+                self.labels_[idx] = k  # Assign a category to the current core object
 
-                while cores_q:  # BFS式访问密度相连的核心对象
+                while cores_q:  # BFS  Density linked core objects
                     cur_core = cores_q.pop(0)
 
-                    # 对未被访问的核心对象操作，已被访问的核心直接跳过
+                    # For the core object that has not been accessed,
+                    # the core that has been accessed will be skipped directly
                     if not visited_arr[cur_core]:
                         visited_arr[cur_core] = True
                         self.labels_[cur_core] = k
 
                         neighbors = [i for i in range(
-                            len(X)) if dist_mat[i, cur_core] <= self.eps]  # 邻域内的所有样本点
+                            len(X)) if dist_mat[i, cur_core] <= self.eps]
                         neighbor_cores = [
-                            i for i in neighbors if i not in cores_q and dens_arr[i] >= self.min_samples]  # 邻域内的所有核心对象
+                            i for i in neighbors if i not in cores_q and dens_arr[i] >= self.min_samples]  # core objects in the neighborhood
                         neighbor_boards = [
-                            i for i in neighbors if dens_arr[i] < self.min_samples]  # 邻域内的所有边界样本
+                            i for i in neighbors if dens_arr[i] < self.min_samples]  # boundary samples in the neighborhood
 
-                        # 核心点加入队列等待访问
+                        # core points join the queue to wait for access
                         cores_q.extend(neighbor_cores)
 
-                        # 边界点进行归类
+                        # boundary points are classified
                         for node_idx in neighbor_boards:
                             if self.labels_[node_idx] == -1:
                                 self.labels_[node_idx] = k
