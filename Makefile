@@ -6,7 +6,7 @@ setup: ## Setup virtual environment for local development
 	&& $(MAKE) install-requirements
 
 install-requirements:
-	pip install -U -e .
+	pip install --default-timeout=1000 -U -e .
 
 test: ## Run tests
 	python3 setup.py test
