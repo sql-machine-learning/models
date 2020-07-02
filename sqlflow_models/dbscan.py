@@ -1,3 +1,12 @@
+#!usr/bin/env python
+# -*- coding:utf-8 _*-
+
+"""
+__author__ : tiankelang
+__email__ : kelang@mail.ustc.edu.cn
+__file_name__ : dbscan.py
+__create_time__ : 2020/07/01
+"""
 import numpy as np
 
 class DBSCAN:
