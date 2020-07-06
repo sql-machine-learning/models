@@ -11,17 +11,61 @@ import numpy as np
 import tensorflow as tf
 from scipy.spatial.distance import pdist, squareform
 from sklearn.base import BaseEstimator, ClusterMixin
+import pandas as pd
+from sklearn import datasets, metrics
+
+def optimizer():
+    # SGD is just a placeholder to avoid panic on SQLFLow traning
+    return tf.keras.optimizers.SGD(lr=0.1, momentum=0.9)
+
+
+def loss():
+    return None
+
+
+def prepare_prediction_column(prediction):
+    """Return the class label of highest probability."""
+    return prediction.argmax(axis=-1)
+
+def purity_score(y_true, y_pred):
+    # compute contingency matrix
+    contingency_matrix = metrics.cluster.contingency_matrix(y_true, y_pred)
+    # return purity
+    return np.sum(np.amax(contingency_matrix, axis=0)) / np.sum(contingency_matrix)
 
 
 class DBSCAN(tf.keras.Model, BaseEstimator, ClusterMixin):
     OUTLIER = -1
 
-    def __init__(self, min_samples=2, eps=10):
-        super(DBSCAN, self).__init__()
+    def __init__(self, min_samples=2, eps=10, feature_columns=None):
+        super(DBSCAN, self).__init__(name='DBSCAN')
         self.minpts = min_samples
         self.eps = eps
         self.clusters = []
         self.labels_ = []
+
+    def call(self):
+        pass
+
+    def _to_dataframe(self, dataset):
+        x_df = pd.DataFrame()
+        y_df = pd.DataFrame()
+
+        for features, label in dataset:
+            dx = {}
+            dy = {}
+            for name, value in features.items():
+                dx[name] = value.numpy()[0]
+            x_df = x_df.append(dx, ignore_index=True)
+            if label is not None:
+                dy['label'] = label.numpy()[0][0]
+                y_df = y_df.append(dy, ignore_index=True)
+
+        if y_df.empty:
+            return x_df, None
+        return x_df, y_df['label']
+
+
 
     def intersect(self, a, b):
         return len(list(set(a) & set(b))) > 0
@@ -83,6 +127,24 @@ class DBSCAN(tf.keras.Model, BaseEstimator, ClusterMixin):
 
         return self
 
+    def _split_dataset(self, dataset):
+        pass
+
+    # do custom training here, parameter "dataset" is a tf.dataset type representing the input data.
+    def sqlflow_train_loop(self, dataset, useIrisDemo=True, epochs=1, verbose=0):
+        if useIrisDemo == True:
+            from sklearn import datasets, metrics
+            iris = datasets.load_iris()  # <class 'sklearn.utils.Bunch'>
+            x_df = iris.data  # (150, 4) numpy.ndarray float64
+            y_df = iris.target
+            self.fit_predict(x_df)
+            print("DBSCAN (minpts=10, eps=0.4): %f" %
+                  purity_score(y_df, self.labels_))
+        else:
+            x_df, y_df = self._split_dataset(dataset)
+            self.fit_predict(x_df)
+            print("DBSCAN (minpts=10, eps=0.4): %f" %
+                  purity_score(y_df, self.labels_))
 '''
 if __name__ == '__main__':
     from sklearn.datasets.samples_generator import make_blobs
