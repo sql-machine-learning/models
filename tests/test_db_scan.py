@@ -1,6 +1,5 @@
 import sqlflow_models
 from tests.base import BaseTestCases
-
 import tensorflow as tf
 import unittest
 import numpy as np
@@ -15,14 +14,6 @@ from numpy import ndarray, testing
 iris = datasets.load_iris()
 iris_data = np.array(iris.data)
 iris_target = iris.target
-
-
-def check_model_exist(path):
-    try:
-        file = Path(path)
-        return file.is_file()
-    except:
-        return False
 
 
 def purity_score(y_true, y_pred):
@@ -41,14 +32,13 @@ class TestDBSCAN(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.filename = './tests/models/dbscan.model'
         self.dbscan = sqlflow_models.DBSCAN(
             min_samples=10, eps=.4)
-        self.dbscan.fit_predict(iris_data)
+        self.dbscan.sqlflow_train_loop(iris_data)
 
     def test_dbscan_return_labels_with_type_numpy_array(self):
         self.assertIsInstance(self.dbscan.labels_, ndarray)
-        print("DBSCAN (minpts=10, eps=0.4): %f" %
+        print("Test DBSCAN (minpts=10, eps=0.4), the purity score: %f" %
                       purity_score(iris_target, self.dbscan.labels_))
 
 
