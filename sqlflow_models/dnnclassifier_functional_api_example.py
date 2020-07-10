@@ -6,7 +6,7 @@ def dnnclassifier_functional_model(feature_columns, field_metas, n_classes=2,  l
     feature_layer_inputs = dict()
     for fmkey in field_metas:
         fm = field_metas[fmkey]
-        feature_layer_inputs[fm["name"]] = tf.keras.Input(shape=(fm["shape"]), name=fm["name"], dtype=fm["dtype"])
+        feature_layer_inputs[fm["feature_name"]] = tf.keras.Input(shape=(fm["shape"]), name=fm["feature_name"], dtype=fm["dtype"])
     feature_layer = tf.keras.layers.DenseFeatures(feature_columns)
     feature_layer_outputs = feature_layer(feature_layer_inputs)
     global _loss
