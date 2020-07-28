@@ -26,7 +26,7 @@ REQUIRED = [
     'scikit-learn==0.21.0',
     'numpy==1.16.2',
     'pandas==0.25.1',
-    'adanet==0.8.0',
+    'adanet==0.9.0',
     "tensorflow-datasets==3.0.0",
     "statsmodels==0.11.1",
 ]
