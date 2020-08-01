@@ -68,7 +68,7 @@ def add_features_extracted_from_ts_data(
     the original data.
 
     Args:
-        input: The input data frame.
+        input: A pandas DataFrame for the input data.
         column_id: The name of the id column to group by the time series data.
             The input data can contain the time series for various entities.
             For example, the UV for different websites.
@@ -81,6 +81,9 @@ def add_features_extracted_from_ts_data(
         extract_setting: minimal | efficient | comprehensive. Control which features
             will be extracted. The order of feature numbers is:
             minimal < efficient < comprehensive
+
+    Returns:
+        A pandas DataFrame containing the original input data and extracted features.
     """
 
     input_with_join_id = pd.DataFrame()
