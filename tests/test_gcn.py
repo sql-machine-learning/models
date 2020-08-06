@@ -36,7 +36,7 @@ def acc(y, label):
 def evaluate(x, y, model):
     '''Function to evaluate the performance of model.'''
     metric = dict()
-    y_pred = model.predict(x, batch_size=x[0].shape[0])
+    y_pred = model.predict(x)
     metric['acc'] = np.round(acc(y, y_pred), 5)
     return metric
 

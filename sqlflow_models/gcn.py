@@ -59,6 +59,18 @@ class GCN(tf.keras.Model):
 
         return tf.keras.activations.softmax(x)
 
+    def evaluate(self, data, y, sample_weight):
+        """Function to evaluate the model."""
+        return self.test(sample_weight, return_loss=True)
+
+    def predict(self, data):
+        """Function to predict labels with the model."""
+        x, adj = data
+        for i in range(self.nlayer-1):
+            x = tf.keras.activations.relu(self.gc_layers[i](x, adj))
+        x = self.gc_layers[-1](x, adj)
+        return tf.keras.activations.softmax(x)
+
     @staticmethod
     def encode_onehot(labels):
         classes = set(labels)
@@ -169,15 +181,19 @@ class GCN(tf.keras.Model):
         
         return loss_value, tape.gradient(loss_value, model.trainable_variables)
     
-    def test(self, mask):
+    def test(self, mask, return_loss=False):
         '''Test the results on the model. Return accuracy'''
-        logits = self.predict(x=[self.features, self.adjacency], batch_size=int(self.features.shape[0]))
+        logits = self.predict(data=[self.features, self.adjacency])
 
         test_mask_logits = tf.gather_nd(logits, tf.where(mask))
         masked_labels = tf.gather_nd(self.labels, tf.where(mask))
 
         ll = tf.equal(tf.argmax(masked_labels, -1), tf.argmax(test_mask_logits, -1))
         accuarcy = tf.reduce_mean(tf.cast(ll, dtype=tf.float32))
+
+        if return_loss:
+            loss_value = loss(labels=masked_labels, output=test_mask_logits)
+            return [loss_value, accuarcy]
 
         return accuarcy
 
@@ -227,10 +243,9 @@ class GCN(tf.keras.Model):
                         break
                     wait += 1
         # evaluate the model
-        result = self.evaluate(x=[self.features, self.adjacency], y=self.labels, 
-                                    batch_size=int(self.features.shape[0]), sample_weight=self.val_mask, verbose=0)
+        result = self.evaluate(data=[self.features, self.adjacency], y=self.labels, sample_weight=self.val_mask)
         # get all the results
-        predicted = self.predict(x=[self.features, self.adjacency], batch_size=int(self.features.shape[0]))
+        predicted = self.predict([self.features, self.adjacency])
         # store the results in a pickled file
         with open('./results.p', 'wb') as f:
             results = dict()
