@@ -30,6 +30,7 @@ REQUIRED = [
     'adanet==0.8.0',
     "tensorflow-datasets==3.0.0",
     "statsmodels==0.11.1",
+    "scipy==1.4.1",
 ]
 
 SETUP_REQUIRED = [
