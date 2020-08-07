@@ -32,6 +32,8 @@ class GCN(tf.keras.Model):
             type dropout: float.
         :param nlayer: Number of GCNLayer to be used in the model.
             type nlayer: int.
+        :param feature_columns: a list of tf.feature_column. (Not used in this model)
+            type feature_columns: list.
         :param id_col: Name for the column in database to be used as the id of each node.
             type id_col: string.
         :param feature_col: Name for the column in database to be used as the features of each node.
@@ -43,6 +45,9 @@ class GCN(tf.keras.Model):
         """
         super(GCN, self).__init__()
 
+        assert dropout < 1 and dropout > 0, "Please make sure dropout rate is a float between 0 and 1."
+        assert train_ratio < 1 and train_ratio > 0, "Please make sure train_ratio is a float between 0 and 1."
+        assert eval_ratio < 1 and eval_ratio > 0, "Please make sure eval_ratio is a float between 0 and 1."
         self.gc_layers = list()
         self.gc_layers.append(GCNLayer(nhid, kernel_regularizer=tf.keras.regularizers.l2(5e-4), sparse_input=sparse_input))
         for i in range(nlayer-1):
@@ -98,9 +103,9 @@ class GCN(tf.keras.Model):
     def sparse_dropout(x, keep_prob, noise_shape):
         """Dropout for sparse tensors."""
         random_tensor = keep_prob
-        random_tensor += tf.random_uniform(noise_shape)
+        random_tensor += tf.random.uniform(noise_shape)
         dropout_mask = tf.cast(tf.floor(random_tensor), dtype=tf.bool)
-        pre_out = tf.sparse_retain(x, dropout_mask)
+        pre_out = tf.sparse.retain(x, dropout_mask)
         return pre_out * (1./keep_prob)
 
     @staticmethod
@@ -143,15 +148,6 @@ class GCN(tf.keras.Model):
             return sp.csr_matrix(features).tocoo()
         else:
             return features
-
-    @staticmethod
-    def sparse_dropout(x, keep_prob, noise_shape):
-        """Dropout for sparse tensors in Tensorflow."""
-        random_tensor = keep_prob
-        random_tensor += tf.random.uniform(noise_shape)
-        dropout_mask = tf.cast(tf.floor(random_tensor), dtype=tf.bool)
-        pre_out = tf.sparse.retain(x, dropout_mask)
-        return pre_out * (1./keep_prob)
 
     def preprocess(self, ids, features, labels, edges):
         """Function to preprocess the node features and adjacency matrix."""
@@ -230,13 +226,13 @@ class GCN(tf.keras.Model):
         masked_labels = tf.gather_nd(self.labels, tf.where(mask))
 
         ll = tf.equal(tf.argmax(masked_labels, -1), tf.argmax(test_mask_logits, -1))
-        accuarcy = tf.reduce_mean(tf.cast(ll, dtype=tf.float32))
+        accuracy = tf.reduce_mean(tf.cast(ll, dtype=tf.float32))
 
         if return_loss:
             loss_value = loss(labels=masked_labels, output=test_mask_logits)
-            return [loss_value, accuarcy]
+            return [loss_value, accuracy]
 
-        return accuarcy
+        return accuracy
 
     def sqlflow_train_loop(self, x):
         """Customized training function."""
