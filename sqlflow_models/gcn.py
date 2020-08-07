@@ -8,10 +8,14 @@ import numpy as np
 import pickle, copy
 
 
-# Graph Convolutional Neural Networks
 class GCN(tf.keras.Model):
-    def __init__(self, nhid, nclass, epochs, train_ratio, eval_ratio, early_stopping=True, dropout=0.5, nlayer=2, feature_columns=None):
-        """GCN
+    def __init__(self, nhid, nclass, epochs, train_ratio, eval_ratio, 
+                sparse_input=True, early_stopping=True, dropout=0.5, nlayer=2, feature_columns=None,
+                id_col='id', feature_col='features', from_node_col='from_node_id', to_node_col='to_node_id'):
+        """
+        Implementation of GCN in this paper: https://arxiv.org/pdf/1609.02907.pdf. The original tensorflow implementation 
+        is accessible here: https://github.com/tkipf/gcn, and one can find more information about GCN through: 
+        http://tkipf.github.io/graph-convolutional-networks/.
         :param nhid: Number of hidden units for GCN.
             type nhid: int.
         :param nclass: Number of classes in total which will be the output dimension.
@@ -34,10 +38,9 @@ class GCN(tf.keras.Model):
         super(GCN, self).__init__()
 
         self.gc_layers = list()
-        self.gc_layers.append(GCNLayer(nhid, kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
-        if nlayer > 2:
-            for i in range(nlayer-2):
-                self.gc_layers.append(GCNLayer(nhid, kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+        self.gc_layers.append(GCNLayer(nhid, kernel_regularizer=tf.keras.regularizers.l2(5e-4), sparse_input=sparse_input))
+        for i in range(nlayer-1):
+            self.gc_layers.append(GCNLayer(nhid, kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
         self.gc_layers.append(GCNLayer(nclass))
         self.keep_prob = 1 - dropout
         self.dropout = tf.keras.layers.Dropout(dropout)
@@ -47,11 +50,25 @@ class GCN(tf.keras.Model):
         self.nlayer = nlayer
         self.epochs = epochs
         self.early_stopping = early_stopping
+        self.sparse_input = sparse_input
+        self.id_col = id_col
+        self.feature_col = feature_col
+        self.from_node_col = from_node_col
+        self.to_node_col = to_node_col
+        # try to load the result file
+        try:
+            with open('./results.pkl', 'rb') as f:
+                self.results = pickle.load(f)
+        except (FileNotFoundError, IOError):
+            self.results = None
 
     def call(self, data):
         x, adj = data
-        assert self.nshape is not None, "Should calculate the shape of input by preprocessing the data with model.preprocess(data)"
-        x = self.dropout(x)
+        assert self.nshape is not None, "Should calculate the shape of input by preprocessing the data with model.preprocess(data)."
+        if self.sparse_input:
+            x = GCN.sparse_dropout(x, self.keep_prob, self.nshape)
+        else:
+            x = self.dropout(x)
         for i in range(self.nlayer-1):
             x = tf.keras.activations.relu(self.gc_layers[i](x, adj))
             x = self.dropout(x)
@@ -70,6 +87,15 @@ class GCN(tf.keras.Model):
             x = tf.keras.activations.relu(self.gc_layers[i](x, adj))
         x = self.gc_layers[-1](x, adj)
         return tf.keras.activations.softmax(x)
+
+    @staticmethod
+    def sparse_dropout(x, keep_prob, noise_shape):
+        """Dropout for sparse tensors."""
+        random_tensor = keep_prob
+        random_tensor += tf.random_uniform(noise_shape)
+        dropout_mask = tf.cast(tf.floor(random_tensor), dtype=tf.bool)
+        pre_out = tf.sparse_retain(x, dropout_mask)
+        return pre_out * (1./keep_prob)
 
     @staticmethod
     def encode_onehot(labels):
@@ -100,14 +126,17 @@ class GCN(tf.keras.Model):
         return a_norm
 
     @staticmethod
-    def normalize_feature(features):
+    def normalize_feature(features, sparse_input):
         """Function to row-normalize the features input."""
         rowsum = np.array(features.sum(1))
         r_inv = np.power(rowsum, -1).flatten()
         r_inv[np.isinf(r_inv)] = 0.
         r_mat_inv = sp.diags(r_inv)
         features = r_mat_inv.dot(features)
-        return features
+        if sparse_input:
+            return sp.csr_matrix(features).tocoo()
+        else:
+            return features
 
     @staticmethod
     def sparse_dropout(x, keep_prob, noise_shape):
@@ -129,7 +158,7 @@ class GCN(tf.keras.Model):
         features = features[idx]
         labels = labels[idx]
         # preprocess
-        features = GCN.normalize_feature(features)
+        features = GCN.normalize_feature(features, self.sparse_input)
         labels = GCN.encode_onehot(labels)
         adjacency = sp.coo_matrix((np.ones(len(edges)),
                     (edges[:, 0], edges[:, 1])),
@@ -140,6 +169,12 @@ class GCN(tf.keras.Model):
 
         nf_shape = features.data.shape
         na_shape = adjacency.data.shape
+        if self.sparse_input:
+            features = tf.SparseTensor(
+                        indices=np.array(list(zip(features.row, features.col)), dtype=np.int64),
+                        values=tf.cast(features.data, tf.float32),
+                        dense_shape=features.shape)
+            features = tf.sparse.reorder(features)
         adjacency = tf.SparseTensor(
                         indices=np.array(list(zip(adjacency.row, adjacency.col)), dtype=np.int64),
                         values=tf.cast(adjacency.data, tf.float32),
@@ -203,10 +238,10 @@ class GCN(tf.keras.Model):
         ids, ids_check, features, labels, edges, edge_check = list(), dict(), list(), list(), list(), dict()
         from_node = 0
         for inputs, label in x:
-            id = inputs['id'].numpy().astype(np.int32)
-            feature = inputs['features'].numpy().astype(np.float32)
-            from_node = inputs['from_node_id'].numpy().astype(np.int32)
-            to_node = inputs['to_node_id'].numpy().astype(np.int32)
+            id = inputs[self.id_col].numpy().astype(np.int32)
+            feature = inputs[self.feature_col].numpy().astype(np.float32)
+            from_node = inputs[self.from_node_col].numpy().astype(np.int32)
+            to_node = inputs[self.to_node_col].numpy().astype(np.int32)
             if int(id) not in ids_check:
                 ids.append(int(id))
                 features.append(feature)
@@ -247,26 +282,24 @@ class GCN(tf.keras.Model):
         # get all the results
         predicted = self.predict([self.features, self.adjacency])
         # store the results in a pickled file
-        with open('./results.p', 'wb') as f:
+        with open('./results.pkl', 'wb') as f:
             results = dict()
             for i in range(len(ids)):
-                results[ids[i]] = predicted[i]
+                results[str(ids[i])] = predicted[i]
             results['evaluation'] = result
             pickle.dump(results, f)
+            self.results = results
 
     def sqlflow_evaluate_loop(self, x, metric_names):
         """Customed evaluation, can only support calculating the accuracy."""
-        with open('./results.p', 'rb') as f:
-            results = pickle.load(f)
-            eval_result = results['evaluation']
+        assert self.results is not None, "Please make sure to train the model first."
+        eval_result = self.results['evaluation']
         return eval_result
 
     def sqlflow_predict_one(self, sample):
         """Customed prediction, sample must be the node id."""
-        with open('./results.p', 'rb') as f:
-            results = pickle.load(f)
-            prediction = results[sample]
-        
+        assert self.results is not None, "Please make sure to train the model first."
+        prediction = self.results[str(int(sample))]
         return [prediction]
 
 def optimizer():
