@@ -32,8 +32,14 @@ class GCN(tf.keras.Model):
             type dropout: float.
         :param nlayer: Number of GCNLayer to be used in the model.
             type nlayer: int.
-        :param feature_columns: a list of tf.feature_column. (Not used in this model)
-            type feature_columns: list.
+        :param id_col: Name for the column in database to be used as the id of each node.
+            type id_col: string.
+        :param feature_col: Name for the column in database to be used as the features of each node.
+            type feature_col: string.
+        :param from_node_col: Name for the column in database to be used as the from_node id of each edge.
+            type from_node_col: string.
+        :param to_node_col: Name for the column in database to be used as the to_node id of each edge.
+            type to_node_col: string.
         """
         super(GCN, self).__init__()
 
