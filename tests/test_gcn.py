@@ -77,7 +77,6 @@ class TestGCN(BaseTestCases.BaseTest):
                            loss='categorical_crossentropy')
         self.model.sqlflow_train_loop(zip(self.inputs, self.labels))
         metric = evaluate([self.model.features, self.model.adjacency], self.model.labels, self.model)
-        print(metric)
         assert (metric['acc'] > 0)
 
 def optimizer():
