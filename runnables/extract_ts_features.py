@@ -1,9 +1,9 @@
 import argparse
 import os
 import pandas as pd 
+from run_io.db_adapter import convertDSNToRfc1783
 from sqlalchemy import create_engine
 from time_series_processing.ts_feature_extractor import add_features_extracted_from_ts_data
-from run_io.db_adapter import convertDSNToRfc1783
 
 
 def build_argument_parser():
