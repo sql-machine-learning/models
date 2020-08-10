@@ -9,6 +9,7 @@ from .rnn_based_time_series import RNNBasedTimeSeriesModel
 from .auto_estimator import AutoClassifier, AutoRegressor
 from .native_keras import RawDNNClassifier
 from .custom_model_example import CustomClassifier
+from .gcn import GCN
 try:
     # NOTE: statsmodels have version conflict on PAI
     from .arima_with_stl_decomposition import ARIMAWithSTLDecomposition
