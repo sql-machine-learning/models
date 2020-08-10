@@ -3,6 +3,7 @@ import os
 import pandas as pd 
 from sqlalchemy import create_engine
 from time_series_processing.ts_feature_extractor import add_features_extracted_from_ts_data
+from run_io.db_adapter import convertDSNToRfc1783
 
 
 def build_argument_parser():
@@ -28,7 +29,8 @@ if __name__ == "__main__":
     output = os.getenv("SQLFLOW_TO_RUN_INTO")
     datasource = os.getenv("SQLFLOW_DATASOURCE")
 
-    engine = create_engine("{}/{}".format(datasource, args.dbname))
+    url = convertDSNToRfc1783(datasource, args.dbname)
+    engine = create_engine(url)
     input = pd.read_sql(
         sql=select_input,
         con=engine)
