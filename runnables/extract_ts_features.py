@@ -2,7 +2,7 @@ import argparse
 import os
 import pandas as pd 
 from sqlalchemy import create_engine
-from utils.ts_feature_extractor import add_features_extracted_from_ts_data
+from time_series_processing.ts_feature_extractor import add_features_extracted_from_ts_data
 
 
 def build_argument_parser():
