@@ -31,6 +31,7 @@ REQUIRED = [
     "tensorflow-datasets==3.0.0",
     "statsmodels==0.11.1",
     "scipy==1.4.1",
+    "tensorflow-metadata<0.23.0",
 ]
 
 SETUP_REQUIRED = [
