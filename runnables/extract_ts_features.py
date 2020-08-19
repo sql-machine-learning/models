@@ -1,7 +1,7 @@
 import argparse
 import os
 import pandas as pd 
-from run_io.db_adapter import convertDSNToRfc1783
+from run_io.db_adapter import convertDSNToRfc1738
 from sqlalchemy import create_engine
 from time_series_processing.ts_feature_extractor import add_features_extracted_from_ts_data, add_lag_columns
 
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     output = os.getenv("SQLFLOW_TO_RUN_INTO")
     datasource = os.getenv("SQLFLOW_DATASOURCE")
 
-    url = convertDSNToRfc1783(datasource, args.dbname)
+    url = convertDSNToRfc1738(datasource, args.dbname)
     engine = create_engine(url)
     input = pd.read_sql(
         sql=select_input,
