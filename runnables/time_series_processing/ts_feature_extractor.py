@@ -52,6 +52,19 @@ def _roll_ts_and_extract_features(
     return extracted_features
 
 
+def add_lag_columns(
+    input,
+    columns_value,
+    lag_num):
+    lag_column_names = []
+    for column_value in columns_value:
+        lag_column_name = "{}_lag_{}".format(column_value, lag_num)
+        input[lag_column_name] = input[column_value].shift(lag_num)
+        lag_column_names.append(lag_column_name)
+    
+    return input[lag_num:], lag_column_names
+
+
 def add_features_extracted_from_ts_data(
     input,
     column_id,

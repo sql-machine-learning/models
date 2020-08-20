@@ -15,7 +15,7 @@ def parseMySQLDSN(dsn):
 # TODO(brightcoder01): Should we put this kind of common method
 # in sqlflow runtime? While writing the runnable code, users can
 # import the runtime library.
-def convertDSNToRfc1783(driver_dsn, defaultDbName):
+def convertDSNToRfc1738(driver_dsn, defaultDbName):
     driver, dsn = driver_dsn.split("://")
     user, passwd, host, port, database, config = parseMySQLDSN(dsn)
 
