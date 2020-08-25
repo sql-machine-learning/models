@@ -34,7 +34,6 @@ if __name__ == "__main__":
         sql=select_input,
         con=engine)
     input_md.execute()
-    print(input_md.to_pandas().head())
 
     stats_df = calc_stats(
         input_md,
