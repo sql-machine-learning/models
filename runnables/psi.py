@@ -32,8 +32,6 @@ if __name__ == "__main__":
     refer_stats_df = pd.read_sql_table(
         table_name=args.refer_stats_table,
         con=engine)
-    print(input_df.head())
-    print(refer_stats_df.head())
 
     actual_cols_bin_probs = get_cols_bin_probs(input_df, args.bin_prob_column)
     expected_cols_bin_probs = get_cols_bin_probs(input_df, args.bin_prob_column)
