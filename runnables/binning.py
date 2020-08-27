@@ -61,7 +61,7 @@ if __name__ == "__main__":
         bin_nums = [None for i in range(len(columns))]
         bin_methods = [None for i in range(len(columns))]
     
-    print("Calculate statistical result for columns: {}".format(columns))
+    print("Calculate the statistics result for columns: {}".format(columns))
     stats_df = calc_stats(
         input_md,
         columns,
