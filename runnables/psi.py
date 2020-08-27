@@ -1,7 +1,7 @@
 import argparse
 import os
 import pandas as pd
-from binning.psi import calc_psi, get_cols_bin_probs
+from bin.psi_calculator import calc_psi, get_cols_bin_probs
 from run_io.db_adapter import convertDSNToRfc1738
 from sqlalchemy import create_engine
 

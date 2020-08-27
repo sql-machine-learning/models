@@ -2,7 +2,7 @@ import argparse
 import mars.dataframe as md
 import os
 import pandas as pd
-from binning.binning import calc_stats, calc_two_dim_binning_stats, get_cols_bin_boundaries
+from bin.binning_calculator import calc_stats, calc_two_dim_binning_stats, get_cols_bin_boundaries
 from run_io.db_adapter import convertDSNToRfc1738
 from sqlalchemy import create_engine
 
