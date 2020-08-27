@@ -60,7 +60,8 @@ if __name__ == "__main__":
         print("Ignore the bin_nums and bin_methods arguments")
         bin_nums = [None for i in range(len(columns))]
         bin_methods = [None for i in range(len(columns))]
-        
+    
+    print("Calculate statistical result for columns: {}".format(columns))
     stats_df = calc_stats(
         input_md,
         columns,
@@ -77,6 +78,7 @@ if __name__ == "__main__":
     )
 
     if args.two_dim_bin_cols:
+        print("Calculate two dimension binning result for columns: {}".format(columns))
         bin_prob_df, bin_cumsum_prob_df = calc_two_dim_binning_stats(
             input_md,
             columns[0],
