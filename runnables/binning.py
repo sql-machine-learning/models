@@ -11,8 +11,8 @@ def build_argument_parser():
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument("--dbname", type=str, required=True)
     parser.add_argument("--columns", type=str, required=True)
-    parser.add_argument("--bin_methods", type=str, required=False)
-    parser.add_argument("--bin_nums", type=str, required=False)
+    parser.add_argument("--bin_method", type=str, required=False)
+    parser.add_argument("--bin_num", type=str, required=False)
     parser.add_argument("--bin_input_table", type=str, required=False)
     parser.add_argument("--reverse_cumsum", type=bool, default=False)
     parser.add_argument("--two_dim_bin_cols", type=str, required=False)
@@ -24,8 +24,8 @@ if __name__ == "__main__":
     parser = build_argument_parser()
     args, _ = parser.parse_known_args()
     columns = args.columns.split(',')
-    bin_methods = args.bin_methods.split(',') if args.bin_methods else None
-    bin_nums = [int(item) for item in args.bin_nums.split(',')] if args.bin_nums else None
+    bin_method_array = args.bin_method.split(',') if args.bin_method else None
+    bin_num_array = [int(item) for item in args.bin_num.split(',')] if args.bin_num else None
     two_dim_bin_cols = args.two_dim_bin_cols.split(',') if args.two_dim_bin_cols else None
 
     select_input = os.getenv("SQLFLOW_TO_RUN_SELECT")
@@ -57,16 +57,26 @@ if __name__ == "__main__":
             raise ValueError("The provided bin boundaries contains keys: {}. But they cannot cover all the \
                 input columns: {}".format(cols_bin_boundaries.keys(), columns))
 
-        print("Ignore the bin_nums and bin_methods arguments")
-        bin_nums = [None for i in range(len(columns))]
-        bin_methods = [None for i in range(len(columns))]
+        print("Ignore the bin_num and bin_method arguments")
+        bin_num_array = [None] * len(columns)
+        bin_method_array = [None] * len(columns)
+    else:
+        if len(bin_num_array) == 1:
+            bin_num_array = bin_num_array * len(columns)
+        else:
+            assert(len(bin_num_array) == len(columns))
+
+        if len(bin_method_array) == 1:
+            bin_method_array = bin_method_array * len(columns)
+        else:
+            assert(len(bin_method_array) == len(columns))
     
     print("Calculate the statistics result for columns: {}".format(columns))
     stats_df = calc_stats(
         input_md,
         columns,
-        bin_methods,
-        bin_nums,
+        bin_method_array,
+        bin_num_array,
         cols_bin_boundaries,
         args.reverse_cumsum)
 
@@ -83,10 +93,10 @@ if __name__ == "__main__":
             input_md,
             columns[0],
             columns[1],
-            bin_methods[0],
-            bin_methods[1],
-            bin_nums[0],
-            bin_nums[1],
+            bin_method_array[0],
+            bin_method_array[1],
+            bin_num_array[0],
+            bin_num_array[1],
             cols_bin_boundaries.get(columns[0], None),
             cols_bin_boundaries.get(columns[1], None),
             args.reverse_cumsum)
