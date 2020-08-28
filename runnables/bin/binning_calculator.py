@@ -57,7 +57,7 @@ def calc_binning_stats(
     bin_methods,
     bin_nums,
     cols_bin_boundaries,
-    reverse_cumsum=False):
+    reverse_cumsum):
     cols_bin_stats = []
     for i in range(len(sel_cols)):
         sel_col = sel_cols[i]
@@ -102,7 +102,7 @@ def calc_stats(
     bin_methods,
     bin_nums,
     cols_bin_boundaries,
-    reverse_cumsum=False):
+    reverse_cumsum):
     basic_stats_df = calc_basic_stats(in_md, sel_cols)
     cols_bin_stats_df = calc_binning_stats(in_md, sel_cols, bin_methods, bin_nums, cols_bin_boundaries, reverse_cumsum)
     
@@ -110,3 +110,38 @@ def calc_stats(
 
     return stats_df
 
+
+def calc_two_dim_binning_stats(
+    in_md,
+    sel_col_1,
+    sel_col_2,
+    bin_method_1,
+    bin_method_2,
+    bin_num_1,
+    bin_num_2,
+    bin_boundaries_1,
+    bin_boundaries_2,
+    reverse_cumsum):
+    bin_o1, bins_1 = binning(in_md, sel_col_1, bin_method_1, bin_num_1, bin_boundaries_1)
+    bin_o2, bins_2 = binning(in_md, sel_col_2, bin_method_2, bin_num_2, bin_boundaries_2)
+
+    bin_num_1 = len(bins_1) - 1
+    bin_num_2 = len(bins_2) - 1
+
+    bin_o = bin_o1 * bin_num_2 + bin_o2
+    bin_prob_df = bin_o.value_counts(normalize=True).to_pandas().to_frame()
+    bin_prob_df = bin_prob_df.reindex(range(bin_num_1 * bin_num_2), fill_value=0)
+    two_dim_bin_prob_np = bin_prob_df.to_numpy().reshape((bin_num_1, bin_num_2))
+    two_dim_bin_cumsum_prob_np = cumsum(two_dim_bin_prob_np, reverse_cumsum)
+
+    return pd.DataFrame(two_dim_bin_prob_np), pd.DataFrame(two_dim_bin_cumsum_prob_np)
+
+
+def get_cols_bin_boundaries(stats_df):
+    col_boundaries = {}
+    for _, row in stats_df.iterrows():
+        col_name = row['name']
+        boundaries = [float(item) for item in row['bin_boundaries'].split(',')]
+        col_boundaries[col_name] = boundaries
+
+    return col_boundaries
