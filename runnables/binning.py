@@ -32,8 +32,7 @@ if __name__ == "__main__":
     output_tables = output.split(',')
     datasource = os.getenv("SQLFLOW_DATASOURCE")
 
-    assert(len(output_tables) == 1,
-        "The output tables shouldn't be null and can contain only one.")
+    assert len(output_tables) == 1, "The output tables shouldn't be null and can contain only one."
 
     url = convertDSNToRfc1738(datasource, args.dbname)
     engine = create_engine(url)

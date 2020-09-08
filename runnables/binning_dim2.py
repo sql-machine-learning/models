@@ -32,8 +32,8 @@ if __name__ == "__main__":
     datasource = os.getenv("SQLFLOW_DATASOURCE")
 
     # Check arguments
-    assert(len(columns) == 2)
-    assert(len(output_tables) == 3)
+    assert len(columns) == 2, "The column number should only be 2"
+    assert len(output_tables) == 3, "The output table number should only be 3"
 
     url = convertDSNToRfc1738(datasource, args.dbname)
     engine = create_engine(url)
