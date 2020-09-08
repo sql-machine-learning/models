@@ -15,7 +15,6 @@ def build_argument_parser():
     parser.add_argument("--bin_num", type=str, required=False)
     parser.add_argument("--bin_input_table", type=str, required=False)
     parser.add_argument("--reverse_cumsum", type=bool, default=False)
-    parser.add_argument("--two_dim_bin_cols", type=str, required=False)
 
     return parser
 
@@ -32,8 +31,9 @@ if __name__ == "__main__":
     output_tables = output.split(',')
     datasource = os.getenv("SQLFLOW_DATASOURCE")
 
-    assert(len(output_tables) == 1,
-        "The output tables shouldn't be null and can contain only one.")
+    # Check arguments
+    assert(len(columns) == 2)
+    assert(len(output_tables) == 3)
 
     url = convertDSNToRfc1738(datasource, args.dbname)
     engine = create_engine(url)
@@ -80,6 +80,32 @@ if __name__ == "__main__":
     print("Persist the statistics result into the table {}".format(output_tables[0]))
     stats_df.to_sql(
         name=output_tables[0],
+        con=engine,
+        index=False
+    )
+
+    print("Calculate two dimension binning result for columns: {}".format(columns))
+    bin_prob_df, bin_cumsum_prob_df = calc_two_dim_binning_stats(
+        input_md,
+        columns[0],
+        columns[1],
+        bin_method_array[0],
+        bin_method_array[1],
+        bin_num_array[0],
+        bin_num_array[1],
+        cols_bin_boundaries.get(columns[0], None),
+        cols_bin_boundaries.get(columns[1], None),
+        args.reverse_cumsum)
+
+    print("Persist the binning probabilities into table {}".format(output_tables[1]))
+    bin_prob_df.to_sql(
+        name=output_tables[1],
+        con=engine,
+        index=False
+    )
+    print("Persist the binning accumulated probabilities into table {}".format(output_tables[2]))
+    bin_cumsum_prob_df.to_sql(
+        name=output_tables[2],
         con=engine,
         index=False
     )
