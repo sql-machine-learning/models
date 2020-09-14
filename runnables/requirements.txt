@@ -1,4 +1,4 @@
-tsfresh
+tsfresh==0.16.0
 sqlalchemy
 mysql
 pymars
