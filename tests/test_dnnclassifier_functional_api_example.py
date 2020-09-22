@@ -17,7 +17,7 @@ def eval_input_fn(features, labels, batch_size=32):
     dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels))
     dataset = dataset.batch(batch_size)
     return dataset
-    
+
 class TestDNNClassifier(BaseTestCases.BaseTest):
     def setUp(self):
         x, y = load_iris(return_X_y=True)
@@ -28,10 +28,10 @@ class TestDNNClassifier(BaseTestCases.BaseTest):
         self.label = y
         feature_columns = [tf.feature_column.numeric_column(key) for key in self.features]
         fieldmetas = {
-            "col_0": {"name": "col_0", "shape": [1], "dtype": tf.float32},
-            "col_1": {"name": "col_1", "shape": [1], "dtype": tf.float32},
-            "col_2": {"name": "col_2", "shape": [1], "dtype": tf.float32},
-            "col_3": {"name": "col_3", "shape": [1], "dtype": tf.float32},
+            "col_0": {"feature_name": "col_0", "shape": [1], "dtype": tf.float32},
+            "col_1": {"feature_name": "col_1", "shape": [1], "dtype": tf.float32},
+            "col_2": {"feature_name": "col_2", "shape": [1], "dtype": tf.float32},
+            "col_3": {"feature_name": "col_3", "shape": [1], "dtype": tf.float32},
         }
         self.model = sqlflow_models.dnnclassifier_functional_model(feature_columns=feature_columns, field_metas=fieldmetas, n_classes=3)
         self.model_class = sqlflow_models.dnnclassifier_functional_model

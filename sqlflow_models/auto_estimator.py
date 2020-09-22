@@ -14,7 +14,7 @@ import adanet
 
 from tensorflow import keras
 from tensorflow_estimator.python.estimator.canned import optimizers
-from sqlflow_models import simple_dnn_generator
+from .simple_dnn_generator import SimpleDNNGenerator
 
 
 LEARN_MIXTURE_WEIGHTS=True
@@ -57,18 +57,18 @@ class AutoClassifier(adanet.Estimator):
         opts[0] = optimizers.get_optimizer_instance(linear_optimizer, 0.1)
         # Define the generator, which defines the search space of subnetworks
         # to train as candidates to add to the final AdaNet model.
-        subnetwork_generator = simple_dnn_generator.SimpleDNNGenerator(
+        subnetwork_generator = SimpleDNNGenerator(
             feature_columns=feature_columns,
             layer_size=layer_size,
             optimizers=opts,
             learn_mixture_weights=LEARN_MIXTURE_WEIGHTS,
             seed=RANDOM_SEED)
-        super().__init__(head=head,
-                         model_dir=model_dir,
-                         adanet_lambda=complexity_penalty,
-                         subnetwork_generator=subnetwork_generator,
-                         max_iteration_steps=search_every_n_steps,
-                         max_iterations=max_iterations)
+        super(AutoClassifier, self).__init__(head=head,
+                                             model_dir=model_dir,
+                                             adanet_lambda=complexity_penalty,
+                                             subnetwork_generator=subnetwork_generator,
+                                             max_iteration_steps=search_every_n_steps,
+                                             max_iterations=max_iterations)
 
 class AutoRegressor(adanet.Estimator):
     def __init__(self, feature_columns, layer_size=50, optimizer='Adagrad', linear_optimizer='Ftrl',
@@ -102,15 +102,15 @@ class AutoRegressor(adanet.Estimator):
         opts[0] = optimizers.get_optimizer_instance(linear_optimizer, 0.1)
         # Define the generator, which defines the search space of subnetworks
         # to train as candidates to add to the final AdaNet model.
-        subnetwork_generator = simple_dnn_generator.SimpleDNNGenerator(
+        subnetwork_generator = SimpleDNNGenerator(
             feature_columns=feature_columns,
             layer_size=layer_size,
             optimizers=opts,
             learn_mixture_weights=LEARN_MIXTURE_WEIGHTS,
             seed=RANDOM_SEED)
-        super().__init__(head=head,
-                         model_dir=model_dir,
-                         adanet_lambda=complexity_penalty,
-                         subnetwork_generator=subnetwork_generator,
-                         max_iteration_steps=search_every_n_steps,
-                         max_iterations=max_iterations)
+        super(AutoRegressor, self).__init__(head=head,
+                                            model_dir=model_dir,
+                                            adanet_lambda=complexity_penalty,
+                                            subnetwork_generator=subnetwork_generator,
+                                            max_iteration_steps=search_every_n_steps,
+                                            max_iterations=max_iterations)

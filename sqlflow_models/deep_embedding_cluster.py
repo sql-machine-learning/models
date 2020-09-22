@@ -18,6 +18,7 @@ import numpy as np
 from sklearn.cluster import KMeans
 from tensorflow.keras.losses import kld
 from tensorflow.keras.optimizers import SGD
+import tensorflow_datasets as tfds
 import pandas as pd
 
 _train_lr = 0.01
@@ -31,17 +32,21 @@ class DeepEmbeddingClusterModel(keras.Model):
                  kmeans_init=20,
                  run_pretrain=True,
                  existed_pretrain_model=None,
-                 pretrain_dims=None,
+                 pretrain_dims=[100, 100, 10],
                  pretrain_activation_func='relu',
-                 pretrain_batch_size=256,
-                 train_batch_size=256,
-                 pretrain_epochs=10,
+                 pretrain_use_callbacks=False,
+                 pretrain_cbearlystop_patience=30,
+                 pretrain_cbearlystop_mindelta=0.0001,
+                 pretrain_cbreduce_patience=10,
+                 pretrain_cbreduce_factor=0.1,
+                 pretrain_epochs=30,
                  pretrain_initializer='glorot_uniform',
                  pretrain_lr=1,
                  train_lr=0.01,
                  train_max_iters=8000,
                  update_interval=100,
-                 tol=0.001,
+                 train_use_tol=True,
+                 tol=0.0001,
                  loss=kld):
 
         """
@@ -53,15 +58,19 @@ class DeepEmbeddingClusterModel(keras.Model):
         :param existed_pretrain_model: Path of existed pre-train model. Not used now.
         :param pretrain_dims: Dims of layers which is used for build autoencoder.
         :param pretrain_activation_func: Active function of autoencoder layers.
-        :param pretrain_batch_size: Size of batch when pre-train.
-        :param train_batch_size: Size of batch when run train.
+        :param pretrain_use_callbacks: Use callbacks when pre-train or not.
+        :param pretrain_cbearlystop_patience: Patience value of EarlyStopping when use callbacks.
+        :param pretrain_cbearlystop_mindelta: Min_delta value of EarlyStopping when use callbacks.
+        :param pretrain_cbreduce_patience: Patience value of ReduceLROnPlateau when use callbacks.
+        :param pretrain_cbreduce_factor: Factor value of ReduceLROnPlateau when use callbacks.
         :param pretrain_epochs: Number of epochs when pre-train.
         :param pretrain_initializer: Initialize function for autoencoder layers.
         :param pretrain_lr: learning rate to train the auto encoder.
         :param train_lr: learning rate to train the cluster network.
         :param train_max_iters: Number of iterations when train.
         :param update_interval: Interval between updating target distribution.
-        :param tol: tol.
+        :param train_use_tol: Use tolerance during clusteringlayer or not.
+        :param tol: Tolerance of earlystopping when train during clusteringlayer.
         :param loss: Default 'kld' when init.
         """
         global _train_lr
@@ -74,21 +83,27 @@ class DeepEmbeddingClusterModel(keras.Model):
         self._n_clusters = n_clusters
         _default_loss = loss
         self._train_max_iters = train_max_iters
-        self._train_batch_size = train_batch_size
         self._update_interval = update_interval
         self._current_interval = 0
+        self._train_use_tol = train_use_tol
         self._tol = tol
 
         # Pre-train
         self._run_pretrain = run_pretrain
         self._existed_pretrain_model = existed_pretrain_model
         self._pretrain_activation_func = pretrain_activation_func
-        self._pretrain_batch_size = pretrain_batch_size
-        self._pretrain_dims = pretrain_dims if pretrain_dims is not None else [500, 500, 2000, 10]
+        self._pretrain_dims = pretrain_dims
         self._pretrain_epochs = pretrain_epochs
         self._pretrain_initializer = pretrain_initializer
         self._pretrain_lr = pretrain_lr
         self._pretrain_optimizer = SGD(lr=self._pretrain_lr, momentum=0.9)
+
+        # Pre-train-callbacks
+        self._pretrain_use_callbacks = pretrain_use_callbacks
+        self._pretrain_cbearlystop_patience = pretrain_cbearlystop_patience
+        self._pretrain_cbearlystop_mindelta = pretrain_cbearlystop_mindelta
+        self._pretrain_cbreduce_patience = pretrain_cbreduce_patience
+        self._pretrain_cbreduce_factor = pretrain_cbreduce_factor 
 
         # K-Means
         self._kmeans_init = kmeans_init
@@ -129,14 +144,30 @@ class DeepEmbeddingClusterModel(keras.Model):
         """
         print('{} Start pre_train.'.format(datetime.now()))
 
+        print('{} Start preparing training dataset to save into memory.'.format(datetime.now()))
         # Concatenate input feature to meet requirement of keras.Model.fit()
         def _concate_generate(dataset_element):
             concate_y = tf.stack([dataset_element[feature.key] for feature in self._feature_columns], axis=1)
             return (dataset_element, concate_y)
 
-        y = x.map(map_func=_concate_generate)
+        y = x.cache().map(map_func=_concate_generate)
         y.prefetch(1)
-        print('{} Finished dataset transform.'.format(datetime.now()))
+        
+        self.input_x = dict()
+        self.input_y = None
+        for np_sample in tfds.as_numpy(y):
+            sample_dict = np_sample[0]
+            label = np_sample[1]
+            if self.input_y is None:
+                self.input_y = label
+            else:
+                self.input_y = np.concatenate([self.input_y, label])
+            if len(self.input_x) == 0:
+                self.input_x = sample_dict
+            else:
+                for k in self.input_x:
+                    self.input_x[k] = np.concatenate([self.input_x[k], sample_dict[k]])
+        print('{} Done preparing training dataset.'.format(datetime.now()))
 
         # Layers - decoder
         self.decoder_layers = []
@@ -158,13 +189,20 @@ class DeepEmbeddingClusterModel(keras.Model):
         self._encoder = keras.Sequential(layers=[self.input_layer] + self.encoder_layers, name='encoder')
         self._encoder.compile(optimizer=self._pretrain_optimizer, loss='mse')
 
-        callbacks = [
-            EarlyStopping(monitor='loss', patience=2, min_delta=0.0001),
-            ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2)
-        ]
+        # pretrain_callbacks
         print('{} Training auto-encoder.'.format(datetime.now()))
-        self._autoencoder.fit_generator(generator=y, epochs=self._pretrain_epochs, callbacks=callbacks,
-                                        verbose=2)
+        if self._pretrain_use_callbacks:
+            callbacks = [
+                EarlyStopping(monitor='loss', 
+                    patience=self._pretrain_cbearlystop_patience, min_delta=self._pretrain_cbearlystop_mindelta),
+                ReduceLROnPlateau(monitor='loss', 
+                    factor=self._pretrain_cbreduce_factor, patience=self._pretrain_cbreduce_patience)
+            ]
+            self._autoencoder.fit(self.input_x, self.input_y, 
+                epochs=self._pretrain_epochs, callbacks=callbacks, verbose=1)
+        else:
+            self._autoencoder.fit(self.input_x, self.input_y, 
+                epochs=self._pretrain_epochs, verbose=1)
         # encoded_input
         # type : numpy.ndarray shape : (num_of_all_records,num_of_cluster) (70000,10) if mnist
         print('{} Calculating encoded_input.'.format(datetime.now()))
@@ -196,50 +234,53 @@ class DeepEmbeddingClusterModel(keras.Model):
         # https://github.com/tensorflow/tensorflow/issues/28111
         # Using 'predict' to solve this problem here.
         # Preparation
-        ite = make_one_shot_iterator(x)
-        features = ite.get_next()
-        self.predict(x=features)
+        for features in x.take(1):
+            self.predict(x=features)
+
+        # Get train.batch_size from sqlflow
+        for feature_name, feature_series in features.items():
+            self._train_batch_size = feature_series.shape[0]
+            break
 
         # Pre-train autoencoder to prepare weights of encoder layers.
         self.pre_train(x)
 
-        # initialize centroids for clustering.
+        # Initialize centroids for clustering.
         self.init_centroids()
 
         # Setting cluster layer.
         self.get_layer(name='clustering').set_weights([self.kmeans.cluster_centers_])
 
         # Train
-        print('{} Start preparing training dataset.'.format(datetime.now()))
-        all_records = {}
-        for feature_dict in x:  # type : dict and EagerTensor
-            for feature_name, feature_series in feature_dict.items():  # type : str and EagerTensor
-                if feature_name in all_records:
-                    all_records[feature_name] = np.concatenate([all_records[feature_name], feature_series])
-                else:
-                    all_records[feature_name] = feature_series
-
-        all_records_df = pd.DataFrame.from_dict(all_records)
-        all_records_ndarray = all_records_df.values
-        record_num, feature_num = all_records_df.shape
+        # flatten y to shape (num_samples, flattened_features)
+        record_num = self.input_y.shape[0]
+        feature_dims = self.input_y.shape[1:]
+        feature_dim_total = 1
+        for d in feature_dims:
+            feature_dim_total = feature_dim_total * d
+        y_reshaped = self.input_y.reshape([record_num, feature_dim_total])
         print('{} Done preparing training dataset.'.format(datetime.now()))
 
         index_array = np.arange(record_num)
         index, loss, p = 0, 0., None
+        
         for ite in range(self._train_max_iters):
             if ite % self._update_interval == 0:
-                q = self.predict(all_records)  # numpy.ndarray shape(record_num,n_clusters)
+                q = self.predict(self.input_x)  # numpy.ndarray shape(record_num,n_clusters)
                 p = self.target_distribution(q)  # update the auxiliary target distribution p
-                y_pred = q.argmax(1)
-                # delta_percentage means the percentage of changed predictions in this train stage.
-                delta_percentage = np.sum(y_pred != self.y_pred_last).astype(np.float32) / y_pred.shape[0]
-                print('{} Updating at iter: {} -> delta_percentage: {}.'.format(datetime.now(), ite, delta_percentage))
-                self.y_pred_last = np.copy(y_pred)
-                if ite > 0 and delta_percentage < self._tol:
-                    print('Early stopping since delta_table {} has reached tol {}'.format(delta_percentage, self._tol))
-                    break
+                
+                if self._train_use_tol:
+                    y_pred = q.argmax(1)
+                    # delta_percentage means the percentage of changed predictions in this train stage.
+                    delta_percentage = np.sum(y_pred != self.y_pred_last).astype(np.float32) / y_pred.shape[0]
+                    print('{} Updating at iter: {} -> delta_percentage: {}.'.format(datetime.now(), ite, delta_percentage))
+                    self.y_pred_last = np.copy(y_pred)
+                    if ite > 0 and delta_percentage < self._tol:
+                        print('Early stopping since delta_table {} has reached tol {}'.format(delta_percentage, self._tol))
+                        break
             idx = index_array[index * self._train_batch_size: min((index + 1) * self._train_batch_size, record_num)]
-            loss = self.train_on_batch(x=list(all_records_ndarray[idx].T), y=p[idx])
+
+            loss = self.train_on_batch(x=list(y_reshaped[idx].T), y=p[idx])
             if ite % 100 == 0:
                 print('{} Training at iter:{} -> loss:{}.'.format(datetime.now(), ite, loss))
             index = index + 1 if (index + 1) * self._train_batch_size <= record_num else 0  # Update index
@@ -265,6 +306,7 @@ class DeepEmbeddingClusterModel(keras.Model):
             # Cluster
             print(self.clustering_layer.name + ' : ')
             print(self.clustering_layer.get_weights())
+
 
 def optimizer():
     global _train_lr

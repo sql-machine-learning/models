@@ -22,8 +22,18 @@ VERSION = None
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'tensorflow==2.0.1', 'scikit-learn==0.20.0', 'numpy==1.16.2', 'pandas==0.25.1', 'adanet==0.8.0'
+    'protobuf==3.7.1',
+    'tensorflow==2.0.1',
+    'scikit-learn==0.21.0',
+    'numpy==1.16.2',
+    'pandas==0.25.1',
+    'adanet==0.8.0',
+    "tensorflow-datasets==3.0.0",
+    "statsmodels==0.11.1",
+    "scipy==1.4.1",
+    "tensorflow-metadata<0.23.0",
 ]
+
 SETUP_REQUIRED = [
     'pytest-runner'
 ]
@@ -133,4 +143,5 @@ setup(
     cmdclass={
         'upload': UploadCommand,
     },
+    zip_safe=False,
 )
