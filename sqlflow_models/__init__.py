@@ -7,6 +7,7 @@ from .deep_embedding_cluster import DeepEmbeddingClusterModel
 from .dnnclassifier_functional_api_example import dnnclassifier_functional_model
 from .rnn_based_time_series import RNNBasedTimeSeriesModel
 from .auto_estimator import AutoClassifier, AutoRegressor
+from .score_card import ScoreCard
 from .native_keras import RawDNNClassifier
 from .custom_model_example import CustomClassifier
 from .gcn import GCN
