@@ -25,18 +25,19 @@ def loss():
 
 class ScoreCard(keras.Model):
 
-    def __init__(self, feature_columns=None):
+    def __init__(self, feature_columns=None, pf_bin_size=5):
         super(ScoreCard, self).__init__(name='ScoreCard')
 
         self._factor = 20/np.log(2)
         self._offset = 600 - 20*np.log(20) / np.log(2)
         self._bins = dict()
+        self._pf_bin_size = pf_bin_size
 
-    def _pf_bin(self, y, x, n=10):
+    def _pf_bin(self, y, x):
         # population frequency bucket
         bad_num = y.sum()
         good_num = y.count() - y.sum()
-        d1 = pd.DataFrame({'x': x,'y': y,'bucket': pd.qcut(x, n, duplicates='drop')})
+        d1 = pd.DataFrame({'x': x,'y': y,'bucket': pd.qcut(x, self._pf_bin_size, duplicates='drop')})
         d2 = d1.groupby('bucket',as_index=True)
         d3 = pd.DataFrame(d2.x.min(),columns=['min_bin']) 
 
