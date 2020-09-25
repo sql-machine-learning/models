@@ -28,6 +28,7 @@ class ScoreCard(keras.Model):
     def __init__(self, feature_columns=None, pf_bin_size=5):
         super(ScoreCard, self).__init__(name='ScoreCard')
 
+        self._target_score = 600
         self._factor = 20/np.log(2)
         self._offset = 600 - 20*np.log(20) / np.log(2)
         self._bins = dict()
@@ -95,10 +96,11 @@ class ScoreCard(keras.Model):
         print("AUC: {}\n".format(auc_score))
 
         # print the score card
-        print("THE SCORE CARD:")
+        print("TARGET SCORE: %d" % self._target_score)
         coe = lr.coef_
         for i, col_name in enumerate(x_df.columns):
             bin_cols = self._bins[col_name][0].index.to_list()
             for j, w in enumerate(self._bins[col_name][2]):
                 print(col_name, bin_cols[j],
-                      round(coe[0][i] * w * self._factor, 0))
+                      round(coe[0][i] * w * self._factor +
+                            self._offset/self._pf_bin_size, 0))
