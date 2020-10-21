@@ -23,7 +23,7 @@ VERSION = None
 # What packages are required for this module to be executed?
 REQUIRED = [
     'protobuf==3.7.1',
-    'tensorflow==2.0.1',
+    'tensorflow==2.0.3',
     'scikit-learn==0.21.0',
     'numpy==1.16.2',
     'pandas>=0.25.1',
