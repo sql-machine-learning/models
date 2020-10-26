@@ -22,12 +22,32 @@ MODEL_PATH = "one_class_svm_model"
 
 
 class OneClassSVM(tf.keras.Model):
-    def __init__(self, feature_columns=None, **kwargs):
+    def __init__(self,
+                 feature_columns=None,
+                 kernel='rbf',
+                 degree=3,
+                 gamma='scale',
+                 coef0=0.0,
+                 tol=0.001,
+                 nu=0.5,
+                 shrinking=True,
+                 cache_size=200,
+                 verbose=False,
+                 max_iter=-1):
         if os.path.exists(MODEL_PATH):
             with open(MODEL_PATH, "rb") as f:
                 self.svm = pickle.load(f)
         else:
-            self.svm = SklearnOneClassSVM(**kwargs)
+            self.svm = SklearnOneClassSVM(kernel=kernel,
+                                          degree=degree,
+                                          gamma=gamma,
+                                          coef0=coef0,
+                                          tol=tol,
+                                          nu=nu,
+                                          shrinking=shrinking,
+                                          cache_size=cache_size,
+                                          verbose=verbose,
+                                          max_iter=max_iter)
 
     def concat_features(self, features):
         assert isinstance(features, dict)
