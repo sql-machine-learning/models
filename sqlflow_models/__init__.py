@@ -11,6 +11,7 @@ from .score_card import ScoreCard
 from .native_keras import RawDNNClassifier
 from .custom_model_example import CustomClassifier
 from .gcn import GCN
+from .one_class_svm import OneClassSVM
 try:
     # NOTE: statsmodels have version conflict on PAI
     from .arima_with_stl_decomposition import ARIMAWithSTLDecomposition
