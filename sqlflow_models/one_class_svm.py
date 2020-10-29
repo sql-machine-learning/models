@@ -20,6 +20,38 @@ from sklearn.svm import OneClassSVM as SklearnOneClassSVM
 
 MODEL_PATH = "one_class_svm_model"
 
+ENABLE_EAGER_EXECUTION = False
+
+try:
+    tf.enable_eager_execution()
+    ENABLE_EAGER_EXECUTION = True
+except Exception:
+    try:
+        tf.compat.v1.enable_eager_execution()
+        ENABLE_EAGER_EXECUTION = True
+    except Exception:
+        ENABLE_EAGER_EXECUTION = False
+
+if ENABLE_EAGER_EXECUTION:
+    print('eager execution mode is enabled')
+else:
+    print('eager execution mode is disabled')
+
+
+def dataset_reader(dataset):
+    if ENABLE_EAGER_EXECUTION:
+        for features in dataset:
+            yield features
+    else:
+        iter = dataset.make_one_shot_iterator()
+        one_element = iter.get_next()
+        with tf.Session() as sess:
+            try:
+                while True:
+                    yield sess.run(one_element)
+            except tf.errors.OutOfRangeError:
+                pass
+
 
 class OneClassSVM(tf.keras.Model):
     def __init__(self,
@@ -52,13 +84,15 @@ class OneClassSVM(tf.keras.Model):
     def concat_features(self, features):
         assert isinstance(features, dict)
         each_feature = []
-        for _, v in features.items():
-            each_feature.append(v.numpy())
+        for k, v in features.items():
+            if ENABLE_EAGER_EXECUTION:
+                v = v.numpy()
+            each_feature.append(v)
         return np.concatenate(each_feature, axis=1)
 
     def sqlflow_train_loop(self, dataset):
         X = []
-        for features in dataset:
+        for features in dataset_reader(dataset):
             X.append(self.concat_features(features))
         X = np.concatenate(X)
 

@@ -19,6 +19,7 @@ import unittest
 import numpy as np
 import tensorflow as tf
 from sqlflow_models import OneClassSVM
+from sqlflow_models.one_class_svm import dataset_reader
 
 
 class TestOneClassSVM(unittest.TestCase):
@@ -51,7 +52,7 @@ class TestOneClassSVM(unittest.TestCase):
         svm.sqlflow_train_loop(train_dataset)
 
         predict_dataset = self.create_dataset()
-        for features in predict_dataset:
+        for features in dataset_reader(predict_dataset):
             pred = svm.sqlflow_predict_one(features)
             pred = np.array(pred)
             self.assertEqual(pred.shape, (1, 1))
