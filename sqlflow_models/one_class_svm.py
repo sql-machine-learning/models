@@ -18,7 +18,8 @@ import numpy as np
 import tensorflow as tf
 from sklearn.svm import OneClassSVM as SklearnOneClassSVM
 
-MODEL_PATH = "one_class_svm_model"
+MODEL_DIR = "model_save"
+MODEL_PATH = MODEL_DIR + "/one_class_svm_model"
 
 ENABLE_EAGER_EXECUTION = False
 
@@ -92,6 +93,10 @@ class OneClassSVM(tf.keras.Model):
         X = np.concatenate(X)
 
         self.svm.fit(X)
+
+        if not os.path.exists(MODEL_DIR):
+            os.mkdir(MODEL_DIR)
+
         with open(MODEL_PATH, "wb") as f:
             pickle.dump(self.svm, f, protocol=2)
 
