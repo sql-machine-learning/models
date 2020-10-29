@@ -32,11 +32,6 @@ except Exception:
     except Exception:
         ENABLE_EAGER_EXECUTION = False
 
-if ENABLE_EAGER_EXECUTION:
-    print('eager execution mode is enabled')
-else:
-    print('eager execution mode is disabled')
-
 
 def dataset_reader(dataset):
     if ENABLE_EAGER_EXECUTION:
