@@ -103,4 +103,5 @@ class OneClassSVM(tf.keras.Model):
     def sqlflow_predict_one(self, features):
         features = self.concat_features(features)
         pred = self.svm.predict(features)
-        return [pred]
+        score = self.svm.decision_function(features)
+        return [pred], score

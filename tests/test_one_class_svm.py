@@ -53,7 +53,7 @@ class TestOneClassSVM(unittest.TestCase):
 
         predict_dataset = self.create_dataset()
         for features in dataset_reader(predict_dataset):
-            pred = svm.sqlflow_predict_one(features)
+            pred = svm.sqlflow_predict_one(features)[0]
             pred = np.array(pred)
             self.assertEqual(pred.shape, (1, 1))
             self.assertTrue(pred[0][0] == 1 or pred[0][0] == -1)
