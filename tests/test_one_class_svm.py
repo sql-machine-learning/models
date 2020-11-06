@@ -55,8 +55,8 @@ class TestOneClassSVM(unittest.TestCase):
         for features in dataset_reader(predict_dataset):
             pred = svm.sqlflow_predict_one(features)[0]
             pred = np.array(pred)
-            self.assertEqual(pred.shape, (1, 1))
-            self.assertTrue(pred[0][0] == 1 or pred[0][0] == -1)
+            self.assertEqual(pred.shape, (1,))
+            self.assertTrue(pred[0] == 1 or pred[0] == -1)
 
 
 if __name__ == '__main__':

@@ -104,4 +104,4 @@ class OneClassSVM(tf.keras.Model):
         features = self.concat_features(features)
         pred = self.svm.predict(features)
         score = self.svm.decision_function(features)
-        return [pred], score
+        return pred, score
