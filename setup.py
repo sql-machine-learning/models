@@ -25,7 +25,7 @@ REQUIRED = [
     'protobuf==3.7.1',
     'tensorflow==2.0.1',
     'scikit-learn==0.21.0',
-    'numpy==1.16.2',
+    'numpy==1.22.0',
     'pandas>=0.25.1',
     'adanet==0.8.0',
     "tensorflow-datasets==3.0.0",
